@@ -1,5 +1,9 @@
 #include "SIM7600.h"
 
+// Inicialización de la constante estática de comandos permitidos
+const char* SIM7600::allowedCommands[7] = {
+    "AT", "CFUN", "CGDCONT", "COPS", "NETOPEN", "CIPOPEN", "CGACT"
+};
 // Constructor
 SIM7600::SIM7600(HardwareSerial& serial) : simSerial(serial) {}
 
@@ -10,13 +14,24 @@ void SIM7600::begin() {
 String SIM7600::sendCommandWithResponse(const char* command, int timeout) {
   Serial.print("Enviando comando => ");
   Serial.println(command);
+  int type = commandType(command);
 
   String formattedCommand = String(command).substring(3);
-  int posEqual = formattedCommand.indexOf("=");
-  if (posEqual != -1) {
-    formattedCommand = formattedCommand.substring(0, posEqual);
+  if(type == READ){
+    //quitar cualquier sufijo "?"
+    if (formattedCommand.endsWith("?") ) {
+      formattedCommand.remove(formattedCommand.length() - 1); // Remover sufijo
+    }
+  }else if(type == WRITE){
+    // Buscar si hay un '=' en el comando, y eliminar todo lo que esté después
+    int posEqual = formattedCommand.indexOf("=");
+    if (posEqual != -1) {
+      formattedCommand = formattedCommand.substring(0, posEqual);  // Mantener solo hasta antes del '='
+    }
   }
-
+  Serial.print("Comando formateado: ");
+  Serial.println(formattedCommand);
+  
   if (!isAllowedCommand(formattedCommand)) {
     Serial.println("Comando no permitido.");
     return "INVALID COMMAND";
@@ -62,7 +77,9 @@ String SIM7600::processResponse(const String& command, const String& response) {
 
 bool SIM7600::isAllowedCommand(const String& command) {
   for (const char* cmd : allowedCommands) {
-    if (command == cmd) return true;
+    if (command == cmd) {
+      return true;
+    }
   }
   return false;
 }
