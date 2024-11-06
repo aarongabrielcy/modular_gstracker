@@ -4,3 +4,7 @@ void configureAPN(const String& apn) {
   Serial.print("Configurando APN: ");
   Serial.println(apn);
 }
+
+bool validConfigAPN(){
+  return false;
+}

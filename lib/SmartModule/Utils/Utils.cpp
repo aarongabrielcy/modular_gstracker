@@ -7,3 +7,8 @@ String trimResponse(const String& response) {
   result.trim();                 // Elimina espacios en blanco al inicio y al final
   return result;
 }
+
+
+
+
+

@@ -1,8 +1,8 @@
 #include "SIM7600.h"
-
+#include "Utils/Utils.h"
 // Inicialización de la constante estática de comandos permitidos
-const char* SIM7600::allowedCommands[7] = {
-    "AT", "CFUN", "CGDCONT", "COPS", "NETOPEN", "CIPOPEN", "CGACT"
+const char* SIM7600::allowedCommands[10] = {
+    "AT", "CFUN", "CGDCONT", "COPS", "NETOPEN", "CIPOPEN", "CGACT", "SIMEI", "CCID", "CPSI"
 };
 // Constructor
 SIM7600::SIM7600(HardwareSerial& serial) : simSerial(serial) {}
@@ -12,17 +12,19 @@ void SIM7600::begin() {
 }
 
 String SIM7600::sendCommandWithResponse(const char* command, int timeout) {
-  Serial.print("Enviando comando => ");
-  Serial.println(command);
+  /*Serial.print("Enviando comando => ");
+  Serial.println(command);*/
   int type = commandType(command);
 
-  String formattedCommand = String(command).substring(3);
+  String formattedCommand = String(command).substring(3); // Quitar "AT+"
   if(type == READ){
     //quitar cualquier sufijo "?"
+   // Serial.println("Quitando sufijo... ");
     if (formattedCommand.endsWith("?") ) {
       formattedCommand.remove(formattedCommand.length() - 1); // Remover sufijo
     }
   }else if(type == WRITE){
+    //Serial.println("quitando signo '='");
     // Buscar si hay un '=' en el comando, y eliminar todo lo que esté después
     int posEqual = formattedCommand.indexOf("=");
     if (posEqual != -1) {
@@ -47,20 +49,22 @@ String SIM7600::sendCommandWithResponse(const char* command, int timeout) {
     }
   }
 
-  Serial.println("Respuesta completa: ");
+  //Serial.println("Respuesta completa: ");
   Serial.println(response);
 
-  return processResponse(formattedCommand, response);
+  return processResponse(command, formattedCommand, response);
 }
 
-String SIM7600::processResponse(const String& command, const String& response) {
+String SIM7600::processResponse(const String& command,  const String& fcommand, const String& response) {
   String processedResponse = response;
-  processedResponse.replace("AT+" + command, "");
-  processedResponse.replace("+" + command + ": ", "");
-  processedResponse.replace("\n", "");  // Eliminar saltos de línea
-  processedResponse.replace("\r", "");  // Eliminar retornos de carro
-  processedResponse.trim();
+  processedResponse.replace(String(command), "");
+  //processedResponse.replace("AT+" + fcommand, "");
+  processedResponse.replace("+" + fcommand + ": ", "");
+  Serial.print("Procesando respuesta... ");
+  Serial.println(processedResponse);
 
+  processedResponse = trimResponse(processedResponse);
+  
   if (processedResponse.endsWith("OK")) {
     processedResponse.remove(processedResponse.length() - 2);
     Serial.println("Estado del comando: OK");
@@ -85,9 +89,17 @@ bool SIM7600::isAllowedCommand(const String& command) {
 }
 
 int SIM7600::commandType(const String& command) {
-  if (command.endsWith("=?")) return TEST;
-  else if (command.endsWith("?") && command.indexOf('=') == -1) return READ;
-  else if (command.indexOf('=') != -1 && !command.endsWith("?")) return WRITE;
-  else if (command.startsWith("AT+") && command.indexOf('=') == -1) return EXECUTE;
-  else return UNKNOWN;
+  if (command.endsWith("=?")){
+    Serial.println("Es un comando de prueba (TEST).");
+    return TEST;
+  }else if (command.endsWith("?") && command.indexOf('=') == -1){
+    Serial.println("Es un comando de lectura (READ).");
+    return READ;
+  }else if (command.indexOf('=') != -1 && !command.endsWith("?")){ 
+    Serial.println("Es un comando de escritura (WRITE).");
+    return WRITE;
+  }else if (command.startsWith("AT+") && command.indexOf('=') == -1){
+   Serial.println("Es un comando de ejecución (EXECUTE).");
+   return EXECUTE;
+   }else{ Serial.println("Tipo de comando desconocido.");return UNKNOWN;}
 }
