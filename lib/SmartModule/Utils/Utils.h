@@ -5,5 +5,6 @@
 #include "cpsi_type.h"
 
 String trimResponse(const String& response);
-String formatCPSI(String command,int type);
+String getValueCPSI(String command,int type);
+String getPositionCPSI(String data,int position);
 #endif

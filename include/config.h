@@ -20,7 +20,8 @@
 
 // Opcional: Define el APN y otros parámetros de red si aplica
 #define DEFAULT_APN "internet.itelcel.com"
-
+#define DEFAULT_SVR "34.196.135.179"
+#define DEFAULT_PORT "5200"
 // Configuraciones de depuración
 #define DEBUG true
 

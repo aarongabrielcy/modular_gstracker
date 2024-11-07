@@ -1,8 +1,8 @@
 #include "SIM7600.h"
 #include "Utils/Utils.h"
 // Inicialización de la constante estática de comandos permitidos
-const char* SIM7600::allowedCommands[10] = {
-    "AT", "CFUN", "CGDCONT", "COPS", "NETOPEN", "CIPOPEN", "CGACT", "SIMEI", "CCID", "CPSI"
+const char* SIM7600::allowedCommands[12] = {
+    "AT", "CFUN", "CGDCONT", "COPS", "CSQ", "NETOPEN", "CIPOPEN", "CGACT", "SIMEI", "CCID", "CPSI", "CCLK"
 };
 // Constructor
 SIM7600::SIM7600(HardwareSerial& serial) : simSerial(serial) {}
@@ -60,8 +60,8 @@ String SIM7600::processResponse(const String& command,  const String& fcommand, 
   processedResponse.replace(String(command), "");
   //processedResponse.replace("AT+" + fcommand, "");
   processedResponse.replace("+" + fcommand + ": ", "");
-  Serial.print("Procesando respuesta... ");
-  Serial.println(processedResponse);
+  /*Serial.print("Procesando respuesta... ");
+  Serial.println(processedResponse);*/
 
   processedResponse = trimResponse(processedResponse);
   

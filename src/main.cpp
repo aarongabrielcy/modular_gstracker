@@ -15,10 +15,14 @@ void setup() {
   Serial.begin(SERIAL_BAUD_RATE);
   simModule.begin();
   configureAPN(DEFAULT_APN);
-
+  dynInfo.getCPSI();
   Serial.println("IMEI => " + modInfo.getIMEI());
   Serial.println("CCID => " + modInfo.getCCID());
-  //Serial.println("CPSI => "+ dynInfo.getCPSI()); //tiene que ir en un loop 
+  Serial.println("CellID => " + dynInfo.getCellID());
+  Serial.println("MCC => "+ dynInfo.getMCC());
+  Serial.println("MNC => "+ dynInfo.getMNC());
+  Serial.println("LAC => "+ dynInfo.getLAC());
+  Serial.println("RXLVL => " + dynInfo.getRxLev());
 }
 
 void loop() {
