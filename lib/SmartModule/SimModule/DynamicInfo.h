@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include "SimModule/SIM7600.h"  // Incluye el encabezado para SIM7600
+#include "cpsi_type.h"
 
 class DynamicInfo{
 public:

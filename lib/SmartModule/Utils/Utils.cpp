@@ -8,7 +8,25 @@ String trimResponse(const String& response) {
   return result;
 }
 
+String formatCPSI(String command,int type){
+  
+   switch (type){
+    case MCC:
 
+      break;
+    case MNC:
+
+      break;
+    case LAC:
+
+      break;
+    case RXLEV:
+
+      break;
+    default:
+      break;
+   }
+}
 
 
 
