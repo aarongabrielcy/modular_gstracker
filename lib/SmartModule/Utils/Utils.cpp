@@ -10,9 +10,9 @@ String trimResponse(const String& response) {
 
 String getValueCPSI(String data, int position) {
     // Llama a getPositionCPSI una vez y almacena el resultado en lastData
-    String lastData = (position != -1)? getPositionCPSI(data, position) : getPositionCPSI(data, 2);
-    Serial.print("Last data: ");
-    Serial.println(lastData);
+    String lastData = (position != -1)? getPositionData(data, position) : getPositionData(data, 2);
+    /*Serial.print("Last data: ");
+    Serial.println(lastData);*/
     // Verifica la posición y procesa según el caso
     switch (position) {
         case CELLID:
@@ -41,8 +41,59 @@ String getValueCPSI(String data, int position) {
             return "null";
     }
 }
+String getFormatUTC(String dt){
+    String date = getPositionData(dt ,DATE);
+    date.replace("\"", "");
+    String timeWithTZ = getPositionData(dt, TIME);
+    timeWithTZ.replace("\"", "");
+    //Serial.println("dateTime UTC-6 => "+ date +";"+timeWithTZ);
+     // Extraer fecha (formato recibido: "yy/MM/dd")
+    int fyear = 2000 + date.substring(0, 2).toInt(); // Convertir "yy" en "yyyy"
+    int fmonth = date.substring(3, 5).toInt();
+    int fday = date.substring(6, 8).toInt();
 
-String getPositionCPSI(String data,int position){
+    Serial.println("YEAR: "+ fyear);
+    Serial.println("MONTH: "+ fmonth);
+    Serial.println("DAY: "+ fday);
+
+    // Extraer hora (formato recibido: "hh:mm:ss±zz")
+    int hour = timeWithTZ.substring(0, 2).toInt();
+    int minute = timeWithTZ.substring(3, 5).toInt();
+    int second = timeWithTZ.substring(6, 8).toInt();
+
+    // Extraer y convertir zona horaria (en cuartos de hora)
+    int timezoneOffset = timeWithTZ.substring(9).toInt() * 15; // ±zz en minutos
+    int offsetHours = timezoneOffset / 60;
+    int offsetMinutes = timezoneOffset % 60;
+
+    // Ajuste a UTC sumando la diferencia horaria
+    hour += offsetHours;
+    minute += offsetMinutes;
+    
+    // Ajuste de minutos y horas si se supera el límite de 60 o 24
+    if (minute >= 60) {
+        hour += minute / 60;
+        minute %= 60;
+    } else if (minute < 0) {
+        hour -= 1;
+        minute += 60;
+    }
+
+    if (hour >= 24) {
+        hour %= 24;
+        day += 1;  // Incrementa el día si la hora supera las 24 horas
+    } else if (hour < 0) {
+        hour += 24;
+        day -= 1;  // Ajuste si la hora es negativa
+    }
+
+    // Formatear la fecha y la hora en el estilo esperado
+    String formattedDate = String(year) + (month < 10 ? "0" : "") + String(month) + (day < 10 ? "0" : "") + String(day);
+    String formattedTime = (hour < 10 ? "0" : "") + String(hour) + ":" + (minute < 10 ? "0" : "") + String(minute) + ":" + (second < 10 ? "0" : "") + String(second);
+    // Retorna la fecha y hora en formato UTC
+    return formattedDate + ";" + formattedTime;
+}
+String getPositionData(String data,int position){
   int startIndex = 0;
     int endIndex = 0;
     int currentPosition = 0;
@@ -65,6 +116,8 @@ String getPositionCPSI(String data,int position){
 
     return "";
 }
+
+
 
 
 
