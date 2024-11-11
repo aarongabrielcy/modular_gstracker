@@ -48,13 +48,13 @@ String getFormatUTC(String dt){
     timeWithTZ.replace("\"", "");
     //Serial.println("dateTime UTC-6 => "+ date +";"+timeWithTZ);
      // Extraer fecha (formato recibido: "yy/MM/dd")
-    int fyear = 2000 + date.substring(0, 2).toInt(); // Convertir "yy" en "yyyy"
-    int fmonth = date.substring(3, 5).toInt();
-    int fday = date.substring(6, 8).toInt();
+    int year = 2000 + date.substring(0, 2).toInt(); // Convertir "yy" en "yyyy"
+    int month = date.substring(3, 5).toInt();
+    int day = date.substring(6, 8).toInt();
 
-    Serial.println("YEAR: "+ fyear);
-    Serial.println("MONTH: "+ fmonth);
-    Serial.println("DAY: "+ fday);
+    Serial.println("YEAR: "+ year);
+    Serial.println("MONTH: "+ month);
+    Serial.println("DAY: "+ day);
 
     // Extraer hora (formato recibido: "hh:mm:ss±zz")
     int hour = timeWithTZ.substring(0, 2).toInt();
@@ -116,10 +116,3 @@ String getPositionData(String data,int position){
 
     return "";
 }
-
-
-
-
-
-
-

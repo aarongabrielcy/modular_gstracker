@@ -1,8 +1,8 @@
 #include "SIM7600.h"
 #include "Utils/Utils.h"
 // Inicialización de la constante estática de comandos permitidos
-const char* SIM7600::allowedCommands[12] = {
-    "AT", "CFUN", "CGDCONT", "COPS", "CSQ", "NETOPEN", "CIPOPEN", "CGACT", "SIMEI", "CCID", "CPSI", "CCLK"
+const char* SIM7600::allowedCommands[17] = {
+    "AT", "CFUN", "CGDCONT", "COPS", "CSQ", "NETOPEN", "CIPOPEN", "CGACT", "SIMEI", "CCID", "CPSI", "CCLK", "CGPS", "CGPSINFO", "CGPSCOLD", "CGPSHOT", "CGNSSINFO"
 };
 // Constructor
 SIM7600::SIM7600(HardwareSerial& serial) : simSerial(serial) {}
@@ -29,6 +29,10 @@ String SIM7600::sendCommandWithResponse(const char* command, int timeout) {
     int posEqual = formattedCommand.indexOf("=");
     if (posEqual != -1) {
       formattedCommand = formattedCommand.substring(0, posEqual);  // Mantener solo hasta antes del '='
+    }
+  }else if(type == TEST){
+    if (formattedCommand.endsWith("=?") ) {
+      formattedCommand.remove(formattedCommand.length() - 2); // Remover sufijo
     }
   }
   Serial.print("Comando formateado: ");

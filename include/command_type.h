@@ -15,4 +15,19 @@ enum cmdType {
   UNKNOWN = -1
 };
 
+enum commands7600 {
+  CQS = 1,
+  CFUN    ,
+  CCID    ,
+  CCLK    ,
+  COPS    ,
+  CPSI    ,
+  CGPS    ,
+  SIMEI   ,
+  CGDCONT ,
+  CIPOPEN ,
+  NETOPEN ,
+  CGPSINFO
+};
+
 #endif
