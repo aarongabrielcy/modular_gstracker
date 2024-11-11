@@ -17,7 +17,7 @@ private:
   bool isAllowedCommand(const String& command);
   int commandType(const String& command);
 
-  static const char* allowedCommands[17];  // Declaración de miembro estático
+  static const char* allowedCommands[20];  // Declaración de miembro estático
 };
 
 #endif

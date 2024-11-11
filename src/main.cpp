@@ -5,11 +5,18 @@
 #include "SimModule/ModuleInfo.h"
 #include "SimModule/DynamicInfo.h"
 #include "SimModule/DateTime/DateTime.h"
+#include "Config/ConfigStorage.h"
+#include "Config/WiFiAPManager.h"
+#include "WebServer/WebServerHandler.h"
 
 SIM7600 simModule(Serial1);  // Instancia de SIM7600 creada en main
 ModuleInfo modInfo(simModule); // Inyección de simModule en ModuleInfo
 DynamicInfo dynInfo(simModule);
 DateTime dateTimeMS(simModule);
+// Crear instancias de las clases
+ConfigStorage configStorage;
+WiFiAPManager wifiManager;
+WebServerHandler webServerHandler(configStorage);
 
 void handleSerialInput();
 
@@ -19,6 +26,14 @@ void setup() {
   configureAPN(DEFAULT_APN);
   dynInfo.getCPSI();
   dateTimeMS.getDateTime();
+      configStorage.begin();
+
+    // Iniciar modo Access Point
+    wifiManager.startAP("ESP32_AP", "12345678");
+
+    // Iniciar servidor web
+    webServerHandler.begin();
+
   Serial.println("IMEI => " + modInfo.getIMEI());
   Serial.println("CCID => " + modInfo.getCCID());
   Serial.println("CellID => " + dynInfo.getCellID());
@@ -31,6 +46,8 @@ void setup() {
 
 void loop() {
   handleSerialInput();
+  // Manejar clientes HTTP
+  webServerHandler.handleClient();
 }
 
 void handleSerialInput() {

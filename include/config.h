@@ -21,7 +21,15 @@
 // Opcional: Define el APN y otros parámetros de red si aplica
 #define DEFAULT_APN "internet.itelcel.com"
 #define DEFAULT_SVR "34.196.135.179"
-#define DEFAULT_PORT "5200"
+#define DEFAULT_PORT 5200
+
+//Configuración ESP WIFI AP
+#define DEFAULT_IP "192.168.101.1"
+#define DEFAULT_PORT_ES 8080
+#define DEFAULT_SSID "GST AP V1"
+#define DEFAULT_PASS "gstrackerv1."
+#define DEFAULT_WEB_SVR 80
+
 // Configuraciones de depuración
 #define DEBUG true
 

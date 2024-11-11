@@ -8,3 +8,19 @@ void configureAPN(const String& apn) {
 bool validConfigAPN(){
   return false;
 }
+
+void configurePDP(){
+
+}
+
+bool validatePDP(){
+  return false;
+}
+
+void configureTCP(){
+
+}
+
+bool validTCP(){
+  return false;
+}
