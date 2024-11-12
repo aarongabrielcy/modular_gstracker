@@ -17,31 +17,33 @@ DateTime dateTimeMS(simModule);
 ConfigStorage configStorage;
 WiFiAPManager wifiManager;
 WebServerHandler webServerHandler(configStorage);
-
+NetworkManager networkManager(simModule);
 void handleSerialInput();
 
 void setup() {
   Serial.begin(SERIAL_BAUD_RATE);
   simModule.begin();
-  configureAPN(DEFAULT_APN);
+  networkManager.validationAPN(DEFAULT_APN);
   dynInfo.getCPSI();
   dateTimeMS.getDateTime();
-      configStorage.begin();
+  configStorage.begin();
 
-    // Iniciar modo Access Point
-    wifiManager.startAP("ESP32_AP", "12345678");
+  // Iniciar modo Access Point
+  wifiManager.startAP("GST_ESAP", "12345678.");
 
-    // Iniciar servidor web
-    webServerHandler.begin();
+  // Iniciar servidor web
+  webServerHandler.begin();
 
   Serial.println("IMEI => " + modInfo.getIMEI());
   Serial.println("CCID => " + modInfo.getCCID());
+  Serial.println("APN => "+ networkManager.getAPN());
   Serial.println("CellID => " + dynInfo.getCellID());
   Serial.println("MCC => "+ dynInfo.getMCC());
   Serial.println("MNC => "+ dynInfo.getMNC());
   Serial.println("LAC => "+ dynInfo.getLAC());
   Serial.println("RXLVL => " + dynInfo.getRxLev());
   Serial.println("DATETIME => "+ dateTimeMS.getValueUTC());
+  Serial.println("IP PUBLIC => ");
 }
 
 void loop() {
