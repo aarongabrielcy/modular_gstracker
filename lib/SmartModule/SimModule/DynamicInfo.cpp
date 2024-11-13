@@ -7,8 +7,8 @@ DynamicInfo::DynamicInfo(SIM7600& sim7600) : simModule(sim7600) {}  // Inicializ
 void DynamicInfo::getCPSI(){
     String cpsi_cmd = "AT+CPSI?";
     String cpsi = simModule.sendCommandWithResponse(cpsi_cmd.c_str(), 4000);
-    Serial.print("getCPSI: ");
-    Serial.println(cpsi);
+    /*Serial.print("getCPSI: ");
+    Serial.println(cpsi);*/
     cellID = getValueCPSI(cpsi, CELLID);
     mcc = getValueCPSI(cpsi, MCC);
     mnc = getValueCPSI(cpsi, MNC);

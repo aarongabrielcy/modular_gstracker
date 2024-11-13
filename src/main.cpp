@@ -23,13 +23,19 @@ void handleSerialInput();
 void setup() {
   Serial.begin(SERIAL_BAUD_RATE);
   simModule.begin();
-  networkManager.validationAPN(DEFAULT_APN);
+  do{Serial.println("Inicializando modulo SIM!");}while(!networkManager.initializeModule());
+  networkManager.basicConfigCDMs();
+  if(networkManager.validateAPN()){
+      if(!networkManager.validatePDP()){
+        while(!networkManager.configurePDP()){Serial.println("connect to RED! ");}
+      }
+  }
   dynInfo.getCPSI();
   dateTimeMS.getDateTime();
   configStorage.begin();
 
   // Iniciar modo Access Point
-  wifiManager.startAP("GST_ESAP", "12345678.");
+  wifiManager.startAP("GST ESAP", "12345678.");
 
   // Iniciar servidor web
   webServerHandler.begin();
@@ -43,7 +49,7 @@ void setup() {
   Serial.println("LAC => "+ dynInfo.getLAC());
   Serial.println("RXLVL => " + dynInfo.getRxLev());
   Serial.println("DATETIME => "+ dateTimeMS.getValueUTC());
-  Serial.println("IP PUBLIC => ");
+  Serial.println("IP PUBLIC => "+ networkManager.getPublicIp());
 }
 
 void loop() {

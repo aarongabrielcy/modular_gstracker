@@ -52,10 +52,6 @@ String getFormatUTC(String dt){
     int month = date.substring(3, 5).toInt();
     int day = date.substring(6, 8).toInt();
 
-    Serial.println("YEAR: "+ year);
-    Serial.println("MONTH: "+ month);
-    Serial.println("DAY: "+ day);
-
     // Extraer hora (formato recibido: "hh:mm:ss±zz")
     int hour = timeWithTZ.substring(0, 2).toInt();
     int minute = timeWithTZ.substring(3, 5).toInt();

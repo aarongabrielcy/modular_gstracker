@@ -14,7 +14,7 @@ enum cmdType {
   EXECUTE = 3,
   UNKNOWN = -1
 };
-
+//clasificar los comandos por lectura, escritura, ejecución y test
 enum commands7600 {
   CQS = 1,
   CFUN    ,

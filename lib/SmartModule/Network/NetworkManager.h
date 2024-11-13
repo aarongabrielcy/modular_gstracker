@@ -7,13 +7,19 @@
 class NetworkManager {
     public:
         NetworkManager(SIM7600& sim7600);
+        bool initializeModule();
+        void basicConfigCDMs();
         void configureAPN(const String& apn);
-        void configurePDP();
-        bool validationAPN(const String& static_apn);
+        bool configurePDP();
+        bool validateAPN();
+        bool validatePDP();
+        void configureTCP(const String& server, int port);
+        bool validTCP();
         String getAPN();
+        String getPublicIp();
+        
     private:
         SIM7600& simModule;
-        bool validatePDP();
-        String apn;
+        String apn, public_ip;
 };
 #endif

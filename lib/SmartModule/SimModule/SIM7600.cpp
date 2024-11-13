@@ -43,8 +43,11 @@ String SIM7600::sendCommandWithResponse(const char* command, int timeout) {
     Serial.println("Comando no permitido.");
     return "INVALID COMMAND";
   }
-
-  simSerial.println(command);  // Enviar comando
+  if(formattedCommand == "AT"){
+      simSerial.println(formattedCommand);  // Enviar comando
+  }else{
+    simSerial.println(command);  // Enviar comando    
+  }
   String response = "";
   long startTime = millis();
   while ((millis() - startTime) < timeout) {
@@ -54,13 +57,13 @@ String SIM7600::sendCommandWithResponse(const char* command, int timeout) {
     }
   }
 
-  //Serial.println("Respuesta completa: ");
+  Serial.println("Respuesta completa: ");
   Serial.println(response);
-
   return processResponse(command, formattedCommand, response);
 }
 
 String SIM7600::processResponse(const String& command,  const String& fcommand, const String& response) {
+  String state_command = "";
   String processedResponse = response;
   processedResponse.replace(String(command), "");
   //processedResponse.replace("AT+" + fcommand, "");
@@ -72,15 +75,20 @@ String SIM7600::processResponse(const String& command,  const String& fcommand, 
   
   if (processedResponse.endsWith("OK")) {
     processedResponse.remove(processedResponse.length() - 2);
-    Serial.println("Estado del comando: OK");
+    state_command = "OK";
+    //Serial.println("Estado del comando: "+state_command);
   } else if (processedResponse.endsWith("ERROR")) {
     processedResponse.remove(processedResponse.length() - 5);
-    Serial.println("Estado del comando: ERROR");
+    state_command = "ERROR";
+    //Serial.println("Estado del comando: "+state_command);
     return "ERROR COMMAND";
   }
 
-  Serial.print("Respuesta procesada: ");
-  Serial.println(processedResponse);
+  /*Serial.print("Respuesta procesada: ");
+  Serial.println(processedResponse);*/
+  if(processedResponse.length() == 0){
+    return state_command;
+  }
   return processedResponse;
 }
 
