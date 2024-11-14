@@ -5,7 +5,10 @@ enum dateTimeType {
     DATE,
     TIME 
 };
-
+enum CellularCompany {
+    ATT = 1,
+    TELCEL
+};
 #endif
 
 

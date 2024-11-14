@@ -30,4 +30,16 @@ enum commands7600 {
   CGPSINFO
 };
 
+enum CMEErrorCodes {
+  PhoneFailure,
+  NoConnectionToPhone,
+  PhoneAdaptorLinkReserved,
+  OperationNotAllowed,
+  SIMFailure = 13,
+  MemoryFull = 20,
+  NoNetworkService = 30,
+  NetworkTimeout = 31,
+  Unknown = 100,
+  //final 260+
+};
 #endif

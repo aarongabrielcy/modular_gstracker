@@ -12,23 +12,33 @@ bool NetworkManager::initializeModule(){
   Serial.println("Error initializing module!");
   return false;
 }
+bool NetworkManager::readSIMInsert(){
+    String cpin_cmd = "AT+CPIN?";
+  String cpin = simModule.sendCommandWithResponse(cpin_cmd.c_str(), 4000);
+  if(cpin == "READY"){
+    return true;
+  }
+  Serial.println("NO SIM INSERT!");
+  return false;
+}
 void NetworkManager::basicConfigCDMs(){
   String cfun_cmd = "AT+CFUN=1";
   String cfun = simModule.sendCommandWithResponse(cfun_cmd.c_str(), 4000);
 }
-void NetworkManager::configureAPN(const String& apn) {
-  String cgdcont_cmd = "AT+CGDCONT=1,\"IP\",\""+apn+"\"";
+void NetworkManager::configureAPN(const String& apn, int c_id, const String& pdp_type) {
+
+  String cgdcont_cmd = "AT+CGDCONT=\""+String(c_id)+"\",\""+pdp_type+"\",\""+apn+"\"";
   String cgdcont = simModule.sendCommandWithResponse(cgdcont_cmd.c_str(), 4000);
 
 }
-bool NetworkManager::validateAPN(){
+bool NetworkManager::readConfiguredAPN(int company){
   String cgd_cmd = "AT+CGDCONT?";
   String cgd = simModule.sendCommandWithResponse(cgd_cmd.c_str(), 4000);
 
   int ipPos = cgd.indexOf("\"IP\"");  // Encontrar "IP"
     if (ipPos == -1) {
       Serial.println("IP not found");
-      apn = "";
+      apn_1 = "";
       return false;  // Si no se encuentra "IP"
     }
 
@@ -36,7 +46,7 @@ bool NetworkManager::validateAPN(){
     int end = cgd.indexOf("\"", start);  // Encontrar la siguiente comilla que cierra el APN
 
     if (start != -1 && end != -1) {
-        apn = cgd.substring(start, end); //asigna ip a variable
+        apn_1 = cgd.substring(start, end); //asigna ip a variable
         return true;  // Extraer y retornar el APN
     } else {
         Serial.println("APN format error");
@@ -45,11 +55,26 @@ bool NetworkManager::validateAPN(){
   return false;
 }
 //hay que esperar para que el comando logre la conexion valida el while que se quede intentando conectar AT+CGACT=1,1
+
+int NetworkManager::readCompanySIM() {
+  String cops_cmd = "AT+COPS?";
+  String cops = simModule.sendCommandWithResponse(cops_cmd.c_str(), 4000);
+  if (cops.indexOf("AT&T") != -1) {
+    return ATT;
+  } 
+  // Verifica si la respuesta contiene "TELCEL"
+  else if (cops.indexOf("TELCEL") != -1) {
+    return TELCEL;
+  }
+  return 0;
+}
+
 bool NetworkManager::configurePDP(){
-  if(NetworkManager::validateAPN() || !NetworkManager::validatePDP()){
+  if(NetworkManager::readConfiguredAPN() || !NetworkManager::validatePDP()){
     String cgAct_cmd = "AT+CGACT=1,1";
     String cgAct = simModule.sendCommandWithResponse(cgAct_cmd.c_str(), 5000);
-    if(cgAct == "OK"){
+    //Encontrar el error el la respuesta "cgAct" para reinciar la funcion hasta que retorne verdadero
+    if(cgAct == "OK"){//<--------validar el error aquí
       NetworkManager::validatePDP();
       Serial.println("CGACT Configurado correctamente");
       return true;
@@ -66,7 +91,7 @@ bool NetworkManager::validatePDP(){
       return false;
   }else if("1,12,03,0"){
    String cgpaddr =  simModule.sendCommandWithResponse(cgpaddr_cmd.c_str(), 5000);
-   public_ip = cgpaddr;
+   public_ip_1 = cgpaddr;
     return true;
   }
   return false;
@@ -90,6 +115,10 @@ bool NetworkManager::validTCP(){
   return false;
 }
 
-String NetworkManager::getAPN() { return apn; }
-String NetworkManager::getPublicIp() { return public_ip; }
+String NetworkManager::getApn1() { return apn_1; }
+String NetworkManager::getApn2() { return apn_2; }
+
+String NetworkManager::getPublicIp1() { return public_ip_1; }
+String NetworkManager::getPublicIp2() { return public_ip_2; }
+
 

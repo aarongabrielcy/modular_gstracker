@@ -23,11 +23,13 @@ void handleSerialInput();
 void setup() {
   Serial.begin(SERIAL_BAUD_RATE);
   simModule.begin();
-  do{Serial.println("Inicializando modulo SIM!");}while(!networkManager.initializeModule());
+  do{Serial.println("Inicializando Modulo...");}while(!networkManager.initializeModule());
   networkManager.basicConfigCDMs();
   if(networkManager.validateAPN()){
       if(!networkManager.validatePDP()){
-        while(!networkManager.configurePDP()){Serial.println("connect to RED! ");}
+        /*do{
+          Serial.println("Connecting to cellular Red... ");
+        }while(!networkManager.configurePDP());*/
       }
   }
   dynInfo.getCPSI();
@@ -35,14 +37,14 @@ void setup() {
   configStorage.begin();
 
   // Iniciar modo Access Point
-  wifiManager.startAP("GST ESAP", "12345678.");
+  wifiManager.startAP("GST32 AP", "12345678.");
 
   // Iniciar servidor web
   webServerHandler.begin();
 
   Serial.println("IMEI => " + modInfo.getIMEI());
   Serial.println("CCID => " + modInfo.getCCID());
-  Serial.println("APN => "+ networkManager.getAPN());
+  Serial.println("APN => "+ networkManager.getApn1());
   Serial.println("CellID => " + dynInfo.getCellID());
   Serial.println("MCC => "+ dynInfo.getMCC());
   Serial.println("MNC => "+ dynInfo.getMNC());
