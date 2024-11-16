@@ -19,8 +19,9 @@
 #define SIM7600_RST_PIN 5      // Pin de reinicio (RESET) del SIM7600
 
 // Opcional: Define el APN y otros parámetros de red si aplica
-#define DEFAULT_APN_1 "internet.itelcel.com"
-#define DEFAULT_APN_2 "ott.iot.attmex.mx"
+#define PDPTYPE "IP"
+#define DEFAULT_APN_TELCEL "internet.itelcel.com"
+#define DEFAULT_APN_ATT "ott.iot.attmex.mx"
 #define DEFAULT_SVR "34.196.135.179"
 #define DEFAULT_PORT 5200
 

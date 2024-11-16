@@ -25,13 +25,6 @@ void setup() {
   simModule.begin();
   do{Serial.println("Inicializando Modulo...");}while(!networkManager.initializeModule());
   networkManager.basicConfigCDMs();
-  if(networkManager.validateAPN()){
-      if(!networkManager.validatePDP()){
-        /*do{
-          Serial.println("Connecting to cellular Red... ");
-        }while(!networkManager.configurePDP());*/
-      }
-  }
   dynInfo.getCPSI();
   dateTimeMS.getDateTime();
   configStorage.begin();
@@ -51,13 +44,28 @@ void setup() {
   Serial.println("LAC => "+ dynInfo.getLAC());
   Serial.println("RXLVL => " + dynInfo.getRxLev());
   Serial.println("DATETIME => "+ dateTimeMS.getValueUTC());
-  Serial.println("IP PUBLIC => "+ networkManager.getPublicIp());
+  Serial.println("IP PUBLIC => "+ networkManager.getPublicIp1());
 }
 
 void loop() {
   handleSerialInput();
   // Manejar clientes HTTP
   webServerHandler.handleClient();
+  
+  /*if(networkManager.readSIMInsert()){
+      int company = networkManager.readCompanySIM();
+      if(company == TELCEL){
+        if(!networkManager.readAPNs(TELCEL)){
+          networkManager.configureAPN(DEFAULT_APN_TELCEL);
+        };
+      }else if(company == ATT){
+          if(!networkManager.readAPNs(ATT)){
+            networkManager.configureAPN(DEFAULT_APN_ATT);
+          }
+      }else {
+        Serial.println("APN invalid!");
+      }
+  }*/
 }
 
 void handleSerialInput() {

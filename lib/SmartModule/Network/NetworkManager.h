@@ -2,6 +2,7 @@
 #define NETWORKMANAGER_H
 
 #include <Arduino.h>
+#include "ArduinoJson.h"
 #include "SimModule/SIM7600.h"
 #include "littles_emus.h"
 
@@ -12,10 +13,11 @@ class NetworkManager {
         void basicConfigCDMs();
         bool readSIMInsert();
         int readCompanySIM();
-        void configureAPN(const String& apn, int c_id, const String& pdp_type);
-        bool configurePDP();
-        bool readConfiguredAPN(int commpany);
-        bool validatePDP();
+        int readPositionAPN();
+        void configureAPN(const String& apn);
+        bool configurePDP(int cid, int state);
+        String readAPNs();
+        bool validateActivePDP(int cid);
         void configureTCP(const String& server, int port);
         bool validTCP();
         String getApn1();

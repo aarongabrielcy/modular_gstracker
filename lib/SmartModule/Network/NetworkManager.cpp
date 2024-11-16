@@ -25,34 +25,67 @@ void NetworkManager::basicConfigCDMs(){
   String cfun_cmd = "AT+CFUN=1";
   String cfun = simModule.sendCommandWithResponse(cfun_cmd.c_str(), 4000);
 }
-void NetworkManager::configureAPN(const String& apn, int c_id, const String& pdp_type) {
-
-  String cgdcont_cmd = "AT+CGDCONT=\""+String(c_id)+"\",\""+pdp_type+"\",\""+apn+"\"";
-  String cgdcont = simModule.sendCommandWithResponse(cgdcont_cmd.c_str(), 4000);
-
+void NetworkManager::configureAPN(const String& apn) {
+  //BUSCA QUE ESPACIO TIENES LIBRE 
+  int c_id = readPositionAPN();
+  if(c_id != 0){
+    String cgdcont_cmd = "AT+CGDCONT=\""+String(c_id)+"\",\""+PDPTYPE+"\",\""+apn+"\"";
+    String cgdcont = simModule.sendCommandWithResponse(cgdcont_cmd.c_str(), 4000);
+  }
+  
 }
-bool NetworkManager::readConfiguredAPN(int company){
+int NetworkManager::readPositionAPN(){
+  //INDICE
+  String cgd_cmd = "AT+CGDCONT?";
+  String cgd = simModule.sendCommandWithResponse(cgd_cmd.c_str(), 4000);
+   // Variables para verificar si los índices están ocupados
+  bool indice1Ocupado = cgd.indexOf("1,\"IP\"") != -1;
+  bool indice2Ocupado = cgd.indexOf("2,\"IP\"") != -1;
+  bool indice3Ocupado = cgd.indexOf("3,\"IP\"") != -1;
+
+  // Retorna el índice más bajo que esté libre
+  if (!indice1Ocupado) return 1; // Si el índice 1 está libre
+  if (!indice2Ocupado) return 2; // Si el índice 2 está libre
+  if (!indice3Ocupado) return 3; // Si el índice 3 está libre
+  return 0;
+}
+
+//manda al configurador el objeto de apn
+String NetworkManager::readAPNs( ) {
+  //VALIDA SI EL APN COINCIDE CON LA COMPAÑIA
   String cgd_cmd = "AT+CGDCONT?";
   String cgd = simModule.sendCommandWithResponse(cgd_cmd.c_str(), 4000);
 
-  int ipPos = cgd.indexOf("\"IP\"");  // Encontrar "IP"
-    if (ipPos == -1) {
-      Serial.println("IP not found");
-      apn_1 = "";
-      return false;  // Si no se encuentra "IP"
-    }
+  DynamicJsonDocument doc(1024);
 
-    int start = cgd.indexOf("\"", ipPos + 4) + 1;  // Buscar la comilla después de "IP"
-    int end = cgd.indexOf("\"", start);  // Encontrar la siguiente comilla que cierra el APN
+  int pos = 0;
+  int index = 0;
 
-    if (start != -1 && end != -1) {
-        apn_1 = cgd.substring(start, end); //asigna ip a variable
-        return true;  // Extraer y retornar el APN
-    } else {
-        Serial.println("APN format error");
-        return false;  // Si no se encuentra correctamente
-    }
-  return false;
+  while ((pos = cgd.indexOf("\"IP\"", pos)) != -1) {
+    // Extraer ID
+    int idStart = cgd.lastIndexOf(',', pos - 1) + 1;
+    int idEnd = cgd.indexOf(',', idStart);
+    String id = cgd.substring(idStart, idEnd);
+
+    // Extraer APN
+    int apnStart = cgd.indexOf('"', pos + 4) + 1;
+    int apnEnd = cgd.indexOf('"', apnStart);
+    String apn = cgd.substring(apnStart, apnEnd);
+
+    // Agregar al JSON
+    JsonObject entry = doc.createNestedObject();
+    entry["id"] = id.toInt();
+    entry["pdptype"] = "IP";
+    entry["apn"] = apn;
+
+    pos = apnEnd + 1;
+    index++;
+  }
+
+  // Convertir a JSON string
+  String output;
+  serializeJson(doc, output);
+  return output;
 }
 //hay que esperar para que el comando logre la conexion valida el while que se quede intentando conectar AT+CGACT=1,1
 
@@ -68,28 +101,63 @@ int NetworkManager::readCompanySIM() {
   }
   return 0;
 }
+String validateCompanyWithApn(int company, String apns){
+  // Tamaño del documento JSON
+  const size_t capacity = JSON_ARRAY_SIZE(2) + 2 * JSON_OBJECT_SIZE(3) + 200;
+  DynamicJsonDocument doc(capacity);
 
-bool NetworkManager::configurePDP(){
-  if(NetworkManager::readConfiguredAPN() || !NetworkManager::validatePDP()){
-    String cgAct_cmd = "AT+CGACT=1,1";
+  // Deserializar el JSON
+  DeserializationError error = deserializeJson(doc, apns);
+
+  if (error) {
+    Serial.print("Error al deserializar JSON: ");
+    Serial.println(error.c_str());
+    return;
+  }
+
+  // Recorrer el JSON
+  JsonArray array = doc.as<JsonArray>();
+  for (JsonObject obj : array) {
+    const char* apn = obj["apn"];
+
+    if (strcmp(apn, String(DEFAULT_APN_ATT).c_str()) == 0 || strcmp(apn, String(DEFAULT_APN_TELCEL).c_str()) == 0) {
+      return String(apn);  // Retorna el APN encontrado
+    }
+  }
+}
+//VALIDA QUE SIM TIENE INSERTATA Y MANDA EL OBJETO DE APNS para validar que se encuetre
+bool NetworkManager::configurePDP( int cid, int state) {
+  int company = NetworkManager::readCompanySIM();
+  String apns =  NetworkManager::readAPNs();
+  String validateApn  = validateCompanyWithApn(company, apns);  
+  if(company == ATT){
+    Serial.print("APN at&t concide con la sim configuar PDP: "+ validateApn);
+
+  }else if(company == TELCEL){
+    Serial.print("APN at&t concide con la sim configuar PDP: "+ validateApn);
+  }
+  //
+  if(!NetworkManager::validateActivePDP()) {
+  String cgAct_cmd = "AT+CGACT=\""+String(cid)+"\",\""+state+"\"";
     String cgAct = simModule.sendCommandWithResponse(cgAct_cmd.c_str(), 5000);
     //Encontrar el error el la respuesta "cgAct" para reinciar la funcion hasta que retorne verdadero
     if(cgAct == "OK"){//<--------validar el error aquí
-      NetworkManager::validatePDP();
+      NetworkManager::validateActivePDP();
       Serial.println("CGACT Configurado correctamente");
       return true;
     }
   }
   return false;
 }
-//esta funcion no está bien validada
-bool NetworkManager::validatePDP(){
+//esta funcion no está bien validada // esta funcion consulta que contexto pdp está activo
+bool NetworkManager::validateActivePDP(int c_id){
   String cga_cmd = "AT+CGACT?";
-  String cgpaddr_cmd = "AT+CGPADDR=1";
+  String cgpaddr_cmd = "";
   String cga = simModule.sendCommandWithResponse(cga_cmd.c_str(), 4000);
   if(cga == "1,02,03,0"){
       return false;
   }else if("1,12,03,0"){
+    cgpaddr_cmd = "AT+CGPADDR=\""+String(c_id)+"\"";
    String cgpaddr =  simModule.sendCommandWithResponse(cgpaddr_cmd.c_str(), 5000);
    public_ip_1 = cgpaddr;
     return true;
