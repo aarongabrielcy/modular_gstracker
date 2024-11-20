@@ -8,8 +8,10 @@ class ModuleInfo{
 public:
     ModuleInfo(SIM7600& sim7600);  // Constructor que recibe una referencia a SIM7600
     String getIMEI();
+    String getDevID();
     String getCCID();
 private:
     SIM7600& simModule;  // Referencia al módulo SIM7600(dependencia inyectada)
+    String formatDevID(String input);
 };
 #endif

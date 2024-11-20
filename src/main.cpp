@@ -8,6 +8,8 @@
 #include "Config/ConfigStorage.h"
 #include "Config/WiFiAPManager.h"
 #include "WebServer/WebServerHandler.h"
+#include "Network/SendDataToServes.h"
+#include "Constellations/Connection.h"
 
 SIM7600 simModule(Serial1);  // Instancia de SIM7600 creada en main
 ModuleInfo modInfo(simModule); // Inyección de simModule en ModuleInfo
@@ -18,10 +20,15 @@ ConfigStorage configStorage;
 WiFiAPManager wifiManager;
 WebServerHandler webServerHandler(configStorage);
 NetworkManager networkManager(simModule);
-
-  static bool stateSIM = false;
-  static bool stateCfgPdp = false;
-
+SendDataToServes sendDataToServes(simModule);
+Connection connection(simModule);
+ 
+bool stateSIM;
+bool stateGnss;
+int count_reset = 0;
+int previous_time_update = 0;
+int previous_time_send = 0;
+int counter_10s = 0;
 
 void handleSerialInput();
 void updateData();
@@ -31,8 +38,9 @@ void setup() {
   Serial.begin(SERIAL_BAUD_RATE);
   simModule.begin();
   do{Serial.println("Inicializando Modulo...");}while(!networkManager.initializeModule());
-  stateSIM = networkManager.readSIMInsert();
+  //stateSIM = networkManager.readSIMInsert();
   networkManager.basicConfigCDMs();
+  connection.activeModuleSat(1);
   configStorage.begin();
   
   // Iniciar modo Access Point
@@ -43,21 +51,54 @@ void setup() {
 }
 
 void loop() {
-  updateData();
+  stateSIM = false;
+  stateGnss = false;
+  static bool stateCfgPdp = false;
   handleSerialInput();
+
+  unsigned long current_time = millis();
+  
+  if (current_time - previous_time_update >= UPDATE_DATA_TIMEOUT) {
+    previous_time_update = current_time;  // Actualizar el tiempo anterior
+      dynInfo.getCPSI(); // Validar que no se imprima hasta que tenga los datos "NO" vacíos
+      dateTimeMS.getDateTime(); // La hora a veces no tiene sentido año 2080 
+      connection.ReadDataGNSS(); 
+
+  }
+  
   // Manejar clientes HTTP
   webServerHandler.handleClient();
   if(!stateSIM){
+    Serial.println("Validando estado de la SIMCARD");
     stateSIM = networkManager.readSIMInsert();
-    if(stateSIM){
-      //reincia el módulo sim
+    if(!stateSIM){
+      //reincio suave al módulo sim
+      count_reset++;
+      Serial.println("** SIM no insertada! => ");
+      if(count_reset == 12){
+        Serial.println("Reinicio suave del modulo: "+networkManager.softReset());
+        count_reset = 0;
+        stateCfgPdp = false;
+      }
+      delay(1000);
+    }else{
+      Serial.println("## SIM insertada!");
+      delay(1000);
     }
   }
   if(!stateCfgPdp && stateSIM){
+    Serial.println("configurando PDP");
     stateCfgPdp = networkManager.configurePDP(TELCEL, 1);
   }
-  simInfo();
-  delay(3000);
+  if(stateCfgPdp && stateSIM){
+    //simInfo();
+    if (current_time - previous_time_send >= SEND_DATA_TIMEOUT) {
+      previous_time_send = current_time;  // Actualizar el tiempo anterior
+      String message = String(HEADER)+";"+modInfo.getDevID()+";"+REPORT_MAP+";"+MODEL_DEVICE+";"+SW_VER+";"+MSG_TYPE+";"
+      +dateTimeMS.getValueUTC()+";"+dynInfo.getCellID()+";"+dynInfo.getMCC()+";"+dynInfo.getLAC()+";"+dynInfo.getRxLev();
+      Serial.println(sendDataToServes.sendData(message) );
+    }
+  }
 }
 
 void handleSerialInput() {
@@ -80,7 +121,4 @@ void simInfo(){
   Serial.println("DATETIME => "+ dateTimeMS.getValueUTC());
   Serial.println("IP PUBLIC => "+ networkManager.getPublicIp1());
 }
-void updateData(){
-  dynInfo.getCPSI(); // Validar que no se imprima hasta que tenga los datos "NO" vacíos
-  dateTimeMS.getDateTime(); // La hora a veces no tiene sentido año 2080  
-}
+

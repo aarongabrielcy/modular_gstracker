@@ -12,17 +12,28 @@ bool NetworkManager::initializeModule(){
   Serial.println("Error initializing module!");
   return false;
 }
-void NetworkManager::restartModule(){
-  
+String NetworkManager::softReset(){
+  String cfunr_cmd = "AT+CFUN=1,1";
+  String cfunr = simModule.sendCommandWithResponse(cfunr_cmd.c_str(), 4000);
+  return cfunr;
+
 }
 bool NetworkManager::readSIMInsert(){
     String cpin_cmd = "AT+CPIN?";
   String cpin = simModule.sendCommandWithResponse(cpin_cmd.c_str(), 4000);
   if(cpin == "READY"){
     return true;
-  }
+  }else if(cpin == "+CME ERROR: SIM failure"){
+      Serial.println("SIM CARD ERR0R!");
+  return false;
+  }else if(cpin == "+SIMCARD: NOT AVAILABLE+CME ERROR: SIM failure"){
   Serial.println("NO SIM INSERT!");
   return false;
+  }else {
+    Serial.println("Erro al intentar leer el estado de la SIM!");
+    return false;
+  }
+
 }
 void NetworkManager::basicConfigCDMs(){
   String cfun_cmd = "AT+CFUN=1";
@@ -177,24 +188,6 @@ bool NetworkManager::validateActivePDP(int c_id){
   if(cga == "1,02,03,0"){
       return false;
   }else if("1,12,03,0"){
-    return true;
-  }
-  return false;
-}
-
-void NetworkManager::configureTCP(const String& server, int port){
-  String cgd_cmd = "AT+NETOPEN";
-  String cip_cmd = "AT+CIPOPEN=0,\"TCP\",\"" + server + "\"," +port;
-  String cgd = simModule.sendCommandWithResponse(cgd_cmd.c_str(), 4000); 
-  if(cgd == "OK0"){
-      String cip = simModule.sendCommandWithResponse(cip_cmd.c_str(), 4000); 
-  }
-}
-bool NetworkManager::validTCP(){
-  String netopen_cmd = "AT+NETOPEN?";
-  String netopen = simModule.sendCommandWithResponse(netopen_cmd.c_str(), 4000);
-  if(netopen == "OK"){
-    Serial.println("Conectado al servidor correctamente!");
     return true;
   }
   return false;

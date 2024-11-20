@@ -7,7 +7,9 @@
 
 // Tiempo de espera predeterminado para comandos AT (en milisegundos)
 #define AT_COMMAND_TIMEOUT 5000
-
+#define TEST_SIM_TIMEOUT 20000
+#define UPDATE_DATA_TIMEOUT 3000
+#define SEND_DATA_TIMEOUT 8000
 // Velocidad de transmisión predeterminada (baud rate) para la comunicación serial con el módulo
 #define SIM7600_BAUD_RATE 115200
 
@@ -34,7 +36,16 @@
 #define DEFAULT_PASS "gstrackerv1."
 #define DEFAULT_WEB_SVR 80
 
+//Static values
+#define HEADER "STT"
+#define REPORT_MAP "3FFFFF"
+#define MODEL_DEVICE 32
+#define SW_VER "1.0.0"
+#define MSG_TYPE 1
+
 // Configuraciones de depuración
 #define DEBUG true
-
+#define GNSS_DEBUG "2056.004981,N,08942.826095,W,141124,040824.0,-14.7,0.0"
+#define GPS_DEBUG "2,04,02,00,2056.008970,N,08942.816465,W,141124,040641.0,12.7,0.0,,2.0,1.7,1.0"
 #endif
+
