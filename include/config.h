@@ -23,6 +23,8 @@
 #define DEFAULT_APN_TELCEL "internet.itelcel.com"
 #define DEFAULT_APN_ATT "ott.iot.attmex.mx"
 #define DEFAULT_SVR "34.196.135.179"
+#define DEFAULT_SRV_DEV "201.99.112.78"
+#define DEFAULT_PORT_DEV 7004
 #define DEFAULT_PORT 5200
 
 //Configuración ESP WIFI AP

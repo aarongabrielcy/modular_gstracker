@@ -9,6 +9,7 @@
 class NetworkManager {
     public:
         NetworkManager(SIM7600& sim7600);
+        void restartModule();
         bool initializeModule();
         void basicConfigCDMs();
         bool readSIMInsert();
@@ -18,6 +19,7 @@ class NetworkManager {
         bool configurePDP(int cid, int state);
         String readAPNs();
         bool validateActivePDP(int cid);
+        String getIpActive(int c_id);
         void configureTCP(const String& server, int port);
         bool validTCP();
         String getApn1();

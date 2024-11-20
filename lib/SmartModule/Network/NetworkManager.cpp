@@ -12,6 +12,9 @@ bool NetworkManager::initializeModule(){
   Serial.println("Error initializing module!");
   return false;
 }
+void NetworkManager::restartModule(){
+  
+}
 bool NetworkManager::readSIMInsert(){
     String cpin_cmd = "AT+CPIN?";
   String cpin = simModule.sendCommandWithResponse(cpin_cmd.c_str(), 4000);
@@ -63,8 +66,8 @@ String NetworkManager::readAPNs( ) {
 
   while ((pos = cgd.indexOf("\"IP\"", pos)) != -1) {
     // Extraer ID
-    int idStart = cgd.lastIndexOf(',', pos - 1) + 1;
-    int idEnd = cgd.indexOf(',', idStart);
+    int idEnd = cgd.indexOf(',', pos -2);
+    int idStart = cgd.lastIndexOf(',', idEnd - 1) + 1;
     String id = cgd.substring(idStart, idEnd);
 
     // Extraer APN
@@ -101,7 +104,9 @@ int NetworkManager::readCompanySIM() {
   }
   return 0;
 }
-String validateCompanyWithApn(int company, String apns){
+int validateCompanyWithApn(int company, String apns){
+  Serial.println("company: "+company);
+  Serial.println("json apns: "+apns);
   // Tamaño del documento JSON
   const size_t capacity = JSON_ARRAY_SIZE(2) + 2 * JSON_OBJECT_SIZE(3) + 200;
   DynamicJsonDocument doc(capacity);
@@ -112,42 +117,57 @@ String validateCompanyWithApn(int company, String apns){
   if (error) {
     Serial.print("Error al deserializar JSON: ");
     Serial.println(error.c_str());
-    return;
+    return  0;
   }
 
   // Recorrer el JSON
   JsonArray array = doc.as<JsonArray>();
   for (JsonObject obj : array) {
+    const int cid = obj["id"];
     const char* apn = obj["apn"];
-
-    if (strcmp(apn, String(DEFAULT_APN_ATT).c_str()) == 0 || strcmp(apn, String(DEFAULT_APN_TELCEL).c_str()) == 0) {
-      return String(apn);  // Retorna el APN encontrado
+    if(company == TELCEL){
+      if (strcmp(apn, String(DEFAULT_APN_TELCEL).c_str()) == 0) {
+        return cid;  // Retorna el APN encontrado
+      }
+    }else if(company == ATT){
+      if (strcmp(apn, String(DEFAULT_APN_ATT).c_str()) == 0 ) {
+        return cid;  // Retorna el APN encontrado
+      }
     }
+    
   }
 }
 //VALIDA QUE SIM TIENE INSERTATA Y MANDA EL OBJETO DE APNS para validar que se encuetre
 bool NetworkManager::configurePDP( int cid, int state) {
   int company = NetworkManager::readCompanySIM();
   String apns =  NetworkManager::readAPNs();
-  String validateApn  = validateCompanyWithApn(company, apns);  
-  if(company == ATT){
-    Serial.print("APN at&t concide con la sim configuar PDP: "+ validateApn);
+  int validateApn  = validateCompanyWithApn(company, apns); 
 
-  }else if(company == TELCEL){
-    Serial.print("APN at&t concide con la sim configuar PDP: "+ validateApn);
+  String cgAct_cmd = "AT+CGACT=" + String(state) + "," + validateApn;
+  String cgAct = simModule.sendCommandWithResponse(cgAct_cmd.c_str(), 4000);
+  
+  if(company == ATT && cgAct == "OK"){
+    apn_1 = DEFAULT_APN_ATT;
+    public_ip_1 = NetworkManager::getIpActive(validateApn);
+    return true;
+
+  }else if(company == TELCEL && cgAct == "OK"){
+    apn_1 = DEFAULT_APN_TELCEL;
+    public_ip_1 = NetworkManager::getIpActive(validateApn);
+    return true;
+  }else{
+    Serial.println("Configure el APN según su región!");
+    return false;
   }
-  //
-  if(!NetworkManager::validateActivePDP()) {
-  String cgAct_cmd = "AT+CGACT=\""+String(cid)+"\",\""+state+"\"";
-    String cgAct = simModule.sendCommandWithResponse(cgAct_cmd.c_str(), 5000);
-    //Encontrar el error el la respuesta "cgAct" para reinciar la funcion hasta que retorne verdadero
-    if(cgAct == "OK"){//<--------validar el error aquí
-      NetworkManager::validateActivePDP();
-      Serial.println("CGACT Configurado correctamente");
-      return true;
-    }
-  }
-  return false;
+}
+String  NetworkManager::getIpActive(int c_id){
+  String cgpaddr_cmd = "";
+  
+  cgpaddr_cmd = "AT+CGPADDR="+String(c_id);
+  Serial.println("Comando para obtener ip public => "+cgpaddr_cmd);
+  String cgpaddr =  simModule.sendCommandWithResponse(cgpaddr_cmd.c_str(), 5000);;
+   
+  return cgpaddr;
 }
 //esta funcion no está bien validada // esta funcion consulta que contexto pdp está activo
 bool NetworkManager::validateActivePDP(int c_id){
@@ -157,9 +177,6 @@ bool NetworkManager::validateActivePDP(int c_id){
   if(cga == "1,02,03,0"){
       return false;
   }else if("1,12,03,0"){
-    cgpaddr_cmd = "AT+CGPADDR=\""+String(c_id)+"\"";
-   String cgpaddr =  simModule.sendCommandWithResponse(cgpaddr_cmd.c_str(), 5000);
-   public_ip_1 = cgpaddr;
     return true;
   }
   return false;
