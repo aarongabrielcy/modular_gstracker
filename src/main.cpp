@@ -1,15 +1,15 @@
 #include <Arduino.h>
 #include "SimModule/SIM7600.h"
 #include "config.h"
-#include "Network/NetworkManager.h"
+#include "CellularNetwork/NetworkManager.h"
 #include "SimModule/ModuleInfo.h"
 #include "SimModule/DynamicInfo.h"
 #include "SimModule/DateTime/DateTime.h"
 #include "Config/ConfigStorage.h"
-#include "Config/WiFiAPManager.h"
+#include "WpanConfig/WiFiAPManager.h"
 #include "WebServer/WebServerHandler.h"
-#include "Network/SendDataToServes.h"
-#include "Constellations/Connection.h"
+#include "CellularNetwork/SendDataToServes.h"
+#include "SatelliteCom/Connection.h"
 
 SIM7600 simModule(Serial1);  // Instancia de SIM7600 creada en main
 ModuleInfo modInfo(simModule); // Inyección de simModule en ModuleInfo
@@ -102,7 +102,7 @@ void loop() {
       previous_time_send = current_time;  // Actualizar el tiempo anterior
       String message = String(HEADER)+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
       +dateTimeMS.getValueUTC()+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()
-      +("Latitud: %+f\n", gpsData.latitude, 6)
+      +("%+f\n", gpsData.latitude, 6)+SMCLN+Serial.printf("%+f\n", gpsData.longitude, 6)
       +SMCLN+connection.getFix();
       Serial.println(sendDataToServes.sendData(message) );
     }
