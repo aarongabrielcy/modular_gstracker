@@ -1,3 +1,10 @@
+//CONFIGURACIÓN INICIAL 
+/*
+1. FECHA DEL MODULO
+2. AUTO CONEXION DE RED CELULAR
+
+*/
+
 #ifndef CONFIG_H
 #define CONFIG_H
 
@@ -19,7 +26,9 @@
 // Pines de encendido y reseteo del módulo SIM7600 (si aplica)
 #define SIM7600_PWRKEY_PIN 4   // Pin de encendido (PWRKEY) del SIM7600
 #define SIM7600_RST_PIN 5      // Pin de reinicio (RESET) del SIM7600
-
+//REPORT FORMAR MARKS
+#define COMMA ","
+#define SMCLN ";" //semicolon
 // Opcional: Define el APN y otros parámetros de red si aplica
 #define PDPTYPE "IP"
 #define DEFAULT_APN_TELCEL "internet.itelcel.com"
@@ -45,7 +54,7 @@
 
 // Configuraciones de depuración
 #define DEBUG true
-#define GNSS_DEBUG "2056.004981,N,08942.826095,W,141124,040824.0,-14.7,0.0"
-#define GPS_DEBUG "2,04,02,00,2056.008970,N,08942.816465,W,141124,040641.0,12.7,0.0,,2.0,1.7,1.0"
+#define GPS_DEBUG "2056.004981,N,08942.826095,W,141124,040824.0,-14.7,0.0,0"
+#define GNSS_DEBUG "2,04,02,00,2056.008970,N,08942.816465,W,141124,040641.0,12.7,0.0,255.0,2.0,1.7,1.0"
 #endif
 

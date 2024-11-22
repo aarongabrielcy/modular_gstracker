@@ -8,13 +8,44 @@ class Connection {
     public:
         Connection(SIM7600& sim7600);
         bool activeModuleSat(int state);
-        String ReadDataGNSS();
-        String ReadDataGPS();
+        void ReadDataGNSS();
         int getFix();
-    private:
-    SIM7600& simModule;
-    int fix;
-    double vspeed;
+        float getLat();
+        float getLon();
+        float getSpeed();
+        float getCourse();
+        int getSatt();
 
+        // Estructura para almacenar datos parseados
+        struct GPSData {
+            int mode;
+            int gps_svs;
+            int glonass_svs;
+            int beidou_svs;
+            float latitude;
+            float longitude;
+            char ns_indicator;
+            char ew_indicator;
+            String date;
+            String utc_time;
+            float altitude;
+            float speed;
+            float course;
+            float pdop;
+            float hdop;
+            float vdop;
+        };
+        GPSData ParseData(const String &data);
+        void printGPSData(const GPSData &data);
+        GPSData getLastGPSData(); // Método para obtener el último GPSData
+    private:
+        SIM7600& simModule;
+        float formatCoordinates(const String &coord, char direction);
+        String formatDate(const String &date);    // Nueva función para formatear fecha
+        String formatTime(const String &utcTime); // Nueva función para formatear hora
+        GPSData lastGPSData; // Almacena el último GPSData procesado
+
+        int fix, num_satt;
+        float vlat, vlon, vspeed, vcourse;
 };
 #endif

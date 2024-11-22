@@ -167,7 +167,7 @@ bool NetworkManager::configurePDP( int cid, int state) {
     public_ip_1 = NetworkManager::getIpActive(validateApn);
     return true;
   }else{
-    Serial.println("Configure el APN según su región!");
+    Serial.println("Configure el APN según su region => "+cgAct);
     return false;
   }
 }

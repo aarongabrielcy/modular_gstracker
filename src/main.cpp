@@ -33,6 +33,8 @@ int counter_10s = 0;
 void handleSerialInput();
 void updateData();
 void simInfo();
+void gnssInfo();
+void gpsInfo(Connection::GPSData gpsData);
 
 void setup() {
   Serial.begin(SERIAL_BAUD_RATE);
@@ -63,6 +65,8 @@ void loop() {
       dynInfo.getCPSI(); // Validar que no se imprima hasta que tenga los datos "NO" vacíos
       dateTimeMS.getDateTime(); // La hora a veces no tiene sentido año 2080 
       connection.ReadDataGNSS(); 
+      Connection::GPSData gpsData = connection.getLastGPSData();
+      gpsInfo(gpsData);
 
   }
   
@@ -92,12 +96,17 @@ void loop() {
   }
   if(stateCfgPdp && stateSIM){
     //simInfo();
+    //gnssInfo();
     if (current_time - previous_time_send >= SEND_DATA_TIMEOUT) {
+      Connection::GPSData gpsData = connection.getLastGPSData();
       previous_time_send = current_time;  // Actualizar el tiempo anterior
-      String message = String(HEADER)+";"+modInfo.getDevID()+";"+REPORT_MAP+";"+MODEL_DEVICE+";"+SW_VER+";"+MSG_TYPE+";"
-      +dateTimeMS.getValueUTC()+";"+dynInfo.getCellID()+";"+dynInfo.getMCC()+";"+dynInfo.getLAC()+";"+dynInfo.getRxLev();
+      String message = String(HEADER)+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
+      +dateTimeMS.getValueUTC()+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()
+      +("Latitud: %+f\n", gpsData.latitude, 6)
+      +SMCLN+connection.getFix();
       Serial.println(sendDataToServes.sendData(message) );
     }
+    
   }
 }
 
@@ -120,5 +129,32 @@ void simInfo(){
   Serial.println("RXLVL => " + dynInfo.getRxLev());
   Serial.println("DATETIME => "+ dateTimeMS.getValueUTC());
   Serial.println("IP PUBLIC => "+ networkManager.getPublicIp1());
+}
+void gnssInfo(){
+
+  Serial.println("FIX => "+ connection.getFix());
+  Serial.println("LAT => "+ String(connection.getLat()) );
+  Serial.println("LON => "+ String(connection.getLon()) );
+  Serial.println("SPEED => "+ String(connection.getSpeed()) );
+  Serial.println("COURSE => "+ String(connection.getCourse()) );
+  Serial.println("SATT gps => "+ connection.getSatt());
+
+}
+void gpsInfo(Connection::GPSData gpsData){
+  Serial.println("Datos GPS:");
+    Serial.printf("Latitud: %+f\n", gpsData.latitude, 6);
+    Serial.printf("Longitud: %+f\n", gpsData.longitude, 6);
+    Serial.print("Fecha (YYYYMMDD): ");
+    Serial.println(gpsData.date);
+    Serial.print("Hora (HH:MM:SS): ");
+    Serial.println(gpsData.utc_time);
+    Serial.print("Altitud: ");
+    Serial.println(gpsData.altitude);
+    Serial.print("Velocidad: ");
+    Serial.println(gpsData.speed);
+}
+
+void oiState(){
+
 }
 
