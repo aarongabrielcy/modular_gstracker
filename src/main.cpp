@@ -29,7 +29,7 @@ int count_reset = 0;
 int previous_time_update = 0;
 int previous_time_send = 0;
 int counter_10s = 0;
-
+String message;
 void handleSerialInput();
 void updateData();
 void simInfo();
@@ -65,9 +65,6 @@ void loop() {
       dynInfo.getCPSI(); // Validar que no se imprima hasta que tenga los datos "NO" vacíos
       dateTimeMS.getDateTime(); // La hora a veces no tiene sentido año 2080 
       connection.ReadDataGNSS(); 
-      Connection::GPSData gpsData = connection.getLastGPSData();
-      gpsInfo(gpsData);
-
   }
   
   // Manejar clientes HTTP
@@ -99,11 +96,18 @@ void loop() {
     //gnssInfo();
     if (current_time - previous_time_send >= SEND_DATA_TIMEOUT) {
       Connection::GPSData gpsData = connection.getLastGPSData();
+      //gpsInfo( gpsData);
       previous_time_send = current_time;  // Actualizar el tiempo anterior
-      String message = String(HEADER)+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
-      +dateTimeMS.getValueUTC()+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()
-      +("%+f\n", gpsData.latitude, 6)+SMCLN+Serial.printf("%+f\n", gpsData.longitude, 6)
-      +SMCLN+connection.getFix();
+        if(!connection.getFix()){
+          message = String(HEADER)+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
+          +dateTimeMS.getValueUTC()+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
+          +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix();
+        }else{
+          message = String(HEADER)+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
+          +gpsData.date+SMCLN+gpsData.utc_time+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
+          +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix();
+        }
+            
       Serial.println(sendDataToServes.sendData(message) );
     }
     
@@ -142,8 +146,16 @@ void gnssInfo(){
 }
 void gpsInfo(Connection::GPSData gpsData){
   Serial.println("Datos GPS:");
-    Serial.printf("Latitud: %+f\n", gpsData.latitude, 6);
-    Serial.printf("Longitud: %+f\n", gpsData.longitude, 6);
+      Serial.print("Modo de Fix: ");
+    Serial.println(gpsData.mode);
+    Serial.print("Satélites GPS: ");
+    Serial.println(gpsData.gps_svs);
+    Serial.print("Satélites GLONASS: ");
+    Serial.println(gpsData.glonass_svs);
+    Serial.print("Satélites BEIDOU: ");
+    Serial.println(gpsData.beidou_svs);
+    /*Serial.printf("Latitud: %+f\n", gpsData.latitude, 6);
+    Serial.printf("Longitud: %+f\n", gpsData.longitude, 6);*/
     Serial.print("Fecha (YYYYMMDD): ");
     Serial.println(gpsData.date);
     Serial.print("Hora (HH:MM:SS): ");

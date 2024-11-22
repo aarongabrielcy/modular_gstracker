@@ -52,9 +52,9 @@ Connection::GPSData Connection::ParseData(const String &data){
     gpsData.gps_svs = tokens[1].toInt();
     gpsData.glonass_svs = tokens[2].toInt();
     gpsData.beidou_svs = tokens[3].toInt();
-    gpsData.latitude = !tokens[4].isEmpty() ? formatCoordinates(tokens[4], tokens[5][0]) : 0.0;
+    gpsData.latitude = !tokens[4].isEmpty() ? formatCoordinates(tokens[4], tokens[5][0]) : "0.0";
     gpsData.ns_indicator = tokens[5][0];
-    gpsData.longitude = !tokens[6].isEmpty() ? formatCoordinates(tokens[6], tokens[7][0]) : 0.0;
+    gpsData.longitude = !tokens[6].isEmpty() ? formatCoordinates(tokens[6], tokens[7][0]) : "0.0";
     gpsData.ew_indicator = tokens[7][0];
     gpsData.date = formatDate(tokens[8]);      // Formatear la fecha
     gpsData.utc_time = formatTime(tokens[9]);  // Formatear la hora
@@ -66,23 +66,40 @@ Connection::GPSData Connection::ParseData(const String &data){
     gpsData.vdop = tokens[15].toFloat();
 
     //datos a mandar al servidor
-    vlat = gpsData.latitude;
+    /*vlat = gpsData.latitude;
     vlon = gpsData.longitude;
     vspeed = gpsData.speed;
     gpsData.course = vcourse;
-    gpsData.gps_svs = num_satt; //este valor debe ser dinámico e indicarle desde la app de configuración que consteleción va a mandar este dato (GPS, GALILEO, GLONASS)
+    gpsData.gps_svs = num_satt;*/ //este valor debe ser dinámico e indicarle desde la app de configuración que consteleción va a mandar este dato (GPS, GALILEO, GLONASS)
     //serializar "gpsData" y mandar en la app para ver los datos en tiempo real de GPS
     // Guardar el último gpsData procesado
     lastGPSData = gpsData;
     return gpsData;
 }
 
-float Connection::formatCoordinates(const String &coord, char direction) {
+/*float Connection::formatCoordinates(const String &coord, char direction) {
     int degreesLength = (coord.indexOf('.') > 4) ? 3 : 2; // Verificar si son 2 o 3 dígitos para grados
     int degrees = coord.substring(0, degreesLength).toInt();
     float minutes = coord.substring(degreesLength).toFloat();
     float decimalDegrees = degrees + (minutes / 60.0);
     return (direction == 'S' || direction == 'W') ? -decimalDegrees : decimalDegrees;
+}*/
+
+String Connection::formatCoordinates(const String &coord, char direction) {
+    int degreesLength = (coord.indexOf('.') > 4) ? 3 : 2; // Verificar si son 2 o 3 dígitos para grados
+    int degrees = coord.substring(0, degreesLength).toInt();
+    float minutes = coord.substring(degreesLength).toFloat();
+    float decimalDegrees = degrees + (minutes / 60.0);
+
+    // Aplicar signo dependiendo de la dirección
+    if (direction == 'S' || direction == 'W') {
+        decimalDegrees = -decimalDegrees;
+    }
+
+    // Formatear el resultado como string con signo explícito
+    char buffer[12]; // Tamaño suficiente para contener coordenadas con precisión
+    snprintf(buffer, sizeof(buffer), "%+.6f", decimalDegrees); // "%+" añade el signo explícito
+    return String(buffer);
 }
 
 String dataGlonass(){
@@ -125,10 +142,10 @@ void Connection::printGPSData(const GPSData &data) {
     Serial.print("Satélites BEIDOU: ");
     Serial.println(data.beidou_svs);
     Serial.print("Latitud: ");
-    Serial.print(data.latitude, 6);
+    Serial.print(data.latitude);
     Serial.println();
     Serial.print("Longitud: ");
-    Serial.print(data.longitude, 6);
+    Serial.print(data.longitude);
     Serial.println();
     Serial.print("Fecha (DDMMYY): ");
     Serial.println(data.date);
@@ -150,11 +167,11 @@ void Connection::printGPSData(const GPSData &data) {
 }
 
 int Connection::getFix() { return fix; }
-float Connection::getLat() { return vlat; }
+/*float Connection::getLat() { return vlat; }
 float Connection::getLon() { return vlon; }
 float Connection::getSpeed() { return vspeed; }
 float Connection::getCourse() { return vcourse; }
-int Connection::getSatt() { return num_satt; }
+int Connection::getSatt() { return num_satt; }*/
 Connection::GPSData Connection::getLastGPSData() {return lastGPSData;}
 
 

@@ -22,8 +22,8 @@ class Connection {
             int gps_svs;
             int glonass_svs;
             int beidou_svs;
-            float latitude;
-            float longitude;
+            String latitude;
+            String longitude;
             char ns_indicator;
             char ew_indicator;
             String date;
@@ -40,7 +40,7 @@ class Connection {
         GPSData getLastGPSData(); // Método para obtener el último GPSData
     private:
         SIM7600& simModule;
-        float formatCoordinates(const String &coord, char direction);
+        String formatCoordinates(const String &coord, char direction);
         String formatDate(const String &date);    // Nueva función para formatear fecha
         String formatTime(const String &utcTime); // Nueva función para formatear hora
         GPSData lastGPSData; // Almacena el último GPSData procesado

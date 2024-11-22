@@ -7,8 +7,8 @@ DateTime::DateTime(SIM7600& sim7600) : simModule(sim7600) {}  // Inicializa la r
 void DateTime::getDateTime(){
     String dt_cmd = "AT+CCLK?";
     String dt = simModule.sendCommandWithResponse(dt_cmd.c_str(), 4000);
-    Serial.print("getDateTime MS: ");
-    Serial.println(dt);
+    /*Serial.print("getDateTime MS: ");
+    Serial.println(dt);*/
     dtUTC = getFormatUTC(dt);
 }
 
