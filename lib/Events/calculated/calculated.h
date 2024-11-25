@@ -3,15 +3,16 @@
 
 #include <Arduino.h>
 
-class calculated {
+class Calculated {
     public:
+    void stateEvent();
     struct ioCal {
         int engineCut;
         int engineOf;
         int engineOn;
         int panicBtn;
         int keepAlive;
-        int  beat;
+        int beat;
     };
 
     private:

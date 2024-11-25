@@ -8,7 +8,7 @@ class Connection {
     public:
         Connection(SIM7600& sim7600);
         bool activeModuleSat(int state);
-        void ReadDataGNSS();
+        bool ReadDataGNSS();
         int getFix();
         float getLat();
         float getLon();

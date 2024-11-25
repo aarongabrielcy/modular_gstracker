@@ -26,6 +26,10 @@
 // Pines de encendido y reseteo del módulo SIM7600 (si aplica)
 #define SIM7600_PWRKEY_PIN 4   // Pin de encendido (PWRKEY) del SIM7600
 #define SIM7600_RST_PIN 5      // Pin de reinicio (RESET) del SIM7600
+
+#define PIN_GPIO_IN      (10)
+#define PIN_GPIO_OUT      (13)
+
 //REPORT FORMAR MARKS
 #define COMMA ","
 #define SMCLN ";" //semicolon
@@ -55,7 +59,7 @@
 // Configuraciones de depuración
 #define DEBUG true
 #define GPS_DEBUG "2056.004981,N,08942.826095,W,141124,040824.0,-14.7,0.0,0"
-//#define GNSS_DEBUG "2,06,02,10,2056.008970,N,08942.816465,W,141124,040641.0,12.7,70.3,255.0,2.0,1.7,1.0"
-#define GNSS_DEBUG "2,09,05,00,3113.330650,N,12121.262554,E,131124,091918.0,32.9,0.0,255.0,1.1,0.8,0.7"
+#define GNSS_DEBUG "2,06,02,10,2056.008970,N,08942.816465,W,141124,040641.0,12.7,70.3,255.0,2.0,1.7,1.0"
+//#define GNSS_DEBUG "2,09,05,00,3113.330650,N,12121.262554,E,131124,091918.0,32.9,0.0,255.0,1.1,0.8,0.7"
 #endif
 

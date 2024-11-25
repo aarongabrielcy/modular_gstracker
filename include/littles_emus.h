@@ -17,13 +17,35 @@ enum TypeofReport {
 };
 
 enum ModeDevice {
-Parking,
-Driving,
-Idle,
-Speeding,
-Towing,
-DeactivateZone,
-Emergency
+    Parking,
+    Driving,
+    Idle,
+    Speeding,
+    Towing,
+    DeactivateZone,
+    Emergency
+};
+
+enum inState {
+    ign,
+    in1,
+    in2,
+    in3,
+    in4,
+    in5,
+    in6,
+    in7
+};
+
+enum ioutState {
+    out1,
+    out2,
+    out3,
+    out4,
+    out5,
+    rsv6,
+    rsv7,
+    rsv8
 };
 
 #endif

@@ -10,6 +10,8 @@
 #include "WebServer/WebServerHandler.h"
 #include "CellularNetwork/SendDataToServes.h"
 #include "SatelliteCom/Connection.h"
+#include "Generated/generated.h"
+#include "Calculated/Calculated.h"
 
 SIM7600 simModule(Serial1);  // Instancia de SIM7600 creada en main
 ModuleInfo modInfo(simModule); // Inyección de simModule en ModuleInfo
@@ -22,7 +24,9 @@ WebServerHandler webServerHandler(configStorage);
 NetworkManager networkManager(simModule);
 SendDataToServes sendDataToServes(simModule);
 Connection connection(simModule);
- 
+Generated generated;
+//Calculated calculated;
+
 bool stateSIM;
 bool stateGnss;
 int count_reset = 0;
@@ -30,6 +34,7 @@ int previous_time_update = 0;
 int previous_time_send = 0;
 int counter_10s = 0;
 String message;
+
 void handleSerialInput();
 void updateData();
 void simInfo();
@@ -50,6 +55,9 @@ void setup() {
 
   // Iniciar servidor web
   webServerHandler.begin();
+  generated.initInput(PIN_GPIO_IN);
+  generated.initOutput(PIN_GPIO_OUT);
+  
 }
 
 void loop() {
@@ -57,14 +65,26 @@ void loop() {
   stateGnss = false;
   static bool stateCfgPdp = false;
   handleSerialInput();
+  bool ignState = generated.readInput();
+  ignState ? 1 : 0;
+  if (ignState) {
+    generated.turnOn();
+  } else {
+    generated.turnOff();
+  }
+  /*Serial.print("Botón presionado: ");
+  Serial.println(ignState ? "Sí" : "No");*/
 
   unsigned long current_time = millis();
   
   if (current_time - previous_time_update >= UPDATE_DATA_TIMEOUT) {
     previous_time_update = current_time;  // Actualizar el tiempo anterior
       dynInfo.getCPSI(); // Validar que no se imprima hasta que tenga los datos "NO" vacíos
-      dateTimeMS.getDateTime(); // La hora a veces no tiene sentido año 2080 
-      connection.ReadDataGNSS(); 
+      if(!connection.ReadDataGNSS() ){
+        dateTimeMS.getDateTime(); // La hora a veces no tiene sentido año 2080 
+      }
+      //generated.stateIO(); 
+      //calculated.stateEvent(); 
   }
   
   // Manejar clientes HTTP
@@ -103,9 +123,10 @@ void loop() {
           +dateTimeMS.getValueUTC()+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
           +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix();
         }else{
+          //crea un modulo donde procese el tipo de reporte a mandar al servidor
           message = String(HEADER)+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
           +gpsData.date+SMCLN+gpsData.utc_time+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
-          +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix();
+          +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix()+SMCLN+ignState;
         }
             
       Serial.println(sendDataToServes.sendData(message) );

@@ -18,7 +18,7 @@ bool Connection::activeModuleSat(int state){
 int activeConstellation(){ 
     return 0;
 }
-void Connection::ReadDataGNSS(){
+bool Connection::ReadDataGNSS(){
     String cgpsinfo_cmd = "AT+CGPSINFO";
     String cgpsinfo = simModule.sendCommandWithResponse(cgpsinfo_cmd.c_str(), 4000);
     if(cgpsinfo == ",,,,,,,,"){
@@ -26,10 +26,12 @@ void Connection::ReadDataGNSS(){
         Serial.println("GNSS DATA DEBUG => "+ String(GNSS_DEBUG) );
         GPSData parsedData = ParseData(GNSS_DEBUG);
         //Connection::printGPSData(parsedData);
+        return false;
     }else{
         fix = 1;
         Serial.println("GNSS DATA => "+ cgpsinfo);
         GPSData parsedData = ParseData(cgpsinfo);
+        return true;
     }
 }
 Connection::GPSData Connection::ParseData(const String &data){
