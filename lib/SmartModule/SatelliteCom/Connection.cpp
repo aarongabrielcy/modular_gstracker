@@ -19,7 +19,7 @@ int activeConstellation(){
     return 0;
 }
 bool Connection::ReadDataGNSS(){
-    String cgpsinfo_cmd = "AT+CGPSINFO";
+    String cgpsinfo_cmd = "AT+CGNSSINFO";
     String cgpsinfo = simModule.sendCommandWithResponse(cgpsinfo_cmd.c_str(), 4000);
     if(cgpsinfo == ",,,,,,,,"){
         DEBUG == true? fix = 1 : fix = 0;

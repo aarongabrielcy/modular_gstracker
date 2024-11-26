@@ -1,6 +1,8 @@
 #ifndef LITTLES_ENUMS_H
 #define LITTLES_ENUMS_H
 
+#include "config.h"
+
 enum dateTimeType {
     DATE,
     TIME 
@@ -26,7 +28,7 @@ enum ModeDevice {
     Emergency
 };
 
-enum inState {
+enum InState {
     ign,
     in1,
     in2,
@@ -36,18 +38,16 @@ enum inState {
     in6,
     in7
 };
-
-enum ioutState {
+enum OutActive {
     out1,
     out2,
-    out3,
+    out3, 
     out4,
     out5,
     rsv6,
     rsv7,
     rsv8
 };
-
 #endif
 
 

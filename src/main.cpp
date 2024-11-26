@@ -55,8 +55,7 @@ void setup() {
 
   // Iniciar servidor web
   webServerHandler.begin();
-  generated.initInput(PIN_GPIO_IN);
-  generated.initOutput(PIN_GPIO_OUT);
+    generated.initializePinsFromJson(INPUTS, INPUTS_ACTIVE);
   
 }
 
@@ -83,6 +82,7 @@ void loop() {
       if(!connection.ReadDataGNSS() ){
         dateTimeMS.getDateTime(); // La hora a veces no tiene sentido año 2080 
       }
+      generated.readPinsFromJson(INPUTS_ACTIVE);
       //generated.stateIO(); 
       //calculated.stateEvent(); 
   }

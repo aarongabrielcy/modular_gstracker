@@ -2,6 +2,8 @@
 #define GENERATED_H
 
 #include <Arduino.h>
+#include "config.h"
+#include <ArduinoJson.h>
 
 class Generated {
     public:
@@ -12,7 +14,7 @@ class Generated {
         void initOutput(int pinOut); // Método para inicializar con el pin
         void turnOn();
         void turnOff();
-        struct ioGen {
+        struct IOGen {
             int ign;
             int in1;
             int in2;
@@ -23,6 +25,10 @@ class Generated {
             float com1;
             float com2; 
         };
+        IOGen stateInputs( const String &inputs);
+        void initIO(char* activeIn, char* activeOut);
+        void initializePinsFromJson(const char* json, const char* bitmask);
+        void readPinsFromJson(const char* bitmask);
     private:
         int pin, pinOut; // Pin asignado al botón
 
