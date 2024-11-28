@@ -23,13 +23,13 @@ bool Connection::ReadDataGNSS(){
     String cgpsinfo = simModule.sendCommandWithResponse(cgpsinfo_cmd.c_str(), 4000);
     if(cgpsinfo == ",,,,,,,,,,,,,,,"){
         DEBUG == true? fix = 1 : fix = 0;
-        Serial.println("GNSS DATA DEBUG => "+ String(GNSS_DEBUG) );
+        //Serial.println("GNSS DATA DEBUG => "+ String(GNSS_DEBUG) );
         GPSData parsedData = ParseData(GNSS_DEBUG);
         //Connection::printGPSData(parsedData);
         return false;
     }else{
         fix = 1;
-        Serial.println("GNSS DATA => "+ cgpsinfo);
+        //Serial.println("GNSS DATA => "+ cgpsinfo);
         GPSData parsedData = ParseData(cgpsinfo);
         return true;
     }

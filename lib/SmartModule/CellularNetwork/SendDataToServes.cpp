@@ -14,12 +14,16 @@ String SendDataToServes::readData(String data, int timeout) {
   return "OK";
 }
 
-void SendDataToServes::configureTCP(const String& server, int port){
+void SendDataToServes::configureTCP(const String& server, int port) {
+  bool stNetOpen;
   String cgd_cmd = "AT+NETOPEN";
   String cip_cmd = "AT+CIPOPEN=0,\"TCP\",\"" + server + "\"," +port;
   String cgd = simModule.sendCommandWithResponse(cgd_cmd.c_str(), 4000); 
-  if(cgd == "OK0"){
+  cgd == "OK0"? stNetOpen = true : stNetOpen = false;
+  if(stNetOpen){
       String cip = simModule.sendCommandWithResponse(cip_cmd.c_str(), 4000); 
+      //calbiar la funcion a boil segun la respuesta de "cip" para validar que se configuró y se conecto al servidor tcp
+      Serial.println("resp server tcp => "+ cip);
   }
 }
 bool SendDataToServes::validTCP(){

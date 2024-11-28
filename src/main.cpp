@@ -55,6 +55,10 @@ void setup() {
 
   // Iniciar servidor web
   webServerHandler.begin();
+  //valida si puedes configurar el servidor TCP antes de que la SIM se conecte a la red.
+  if(webServerHandler.handleRoot() ){
+    sendDataToServes.configureTCP(webServerHandler.getServerIP(), webServerHandler.getServerPort());
+  }
   generated.initializePinsFromJson(INPUTS, INPUTS_ACTIVE);
   
 }
@@ -86,11 +90,11 @@ void loop() {
       //generated.stateIO(); 
       //calculated.stateEvent(); 
   }
-  
+  //webServerHandler.serviceToApp();
   // Manejar clientes HTTP
   webServerHandler.handleClient();
   if(!stateSIM){
-    Serial.println("Validando estado de la SIMCARD");
+    //Serial.println("Validando estado de la SIMCARD");
     stateSIM = networkManager.readSIMInsert();
     if(!stateSIM){
       //reincio suave al módulo sim
@@ -108,7 +112,7 @@ void loop() {
     }
   }
   if(!stateCfgPdp && stateSIM){
-    Serial.println("configurando PDP");
+    //Serial.println("configurando PDP");
     stateCfgPdp = networkManager.configurePDP(TELCEL, 1);
   }
   if(stateCfgPdp && stateSIM){
@@ -127,7 +131,8 @@ void loop() {
           message = String(HEADER)+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
           +gpsData.date+SMCLN+gpsData.utc_time+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
           +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix()+SMCLN
-          +generated.ioState.in3+generated.ioState.in2+generated.ioState.in1+generated.ioState.ign;
+          +generated.ioState.in7+generated.ioState.in6+generated.ioState.in5+generated.ioState.in4+generated.ioState.in3+generated.ioState.in2
+          +generated.ioState.in1+generated.ioState.ign+SMCLN;
         }
             
       Serial.println(sendDataToServes.sendData(message) );

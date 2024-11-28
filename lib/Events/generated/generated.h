@@ -6,17 +6,21 @@
 #include <ArduinoJson.h>
 
 struct InOutState {
-    int ign;
-    int in1;
-    int in2;
-    int in3;
-    int ou1;
-    int ou2;
-    int out3;
-    float bckVolt;
-    float pwrVolt;
-    float com1;
-    float com2; 
+    int ign = 0;
+    int in1 = 0;
+    int in2 = 0;
+    int in3 = 0;
+    int in4 = 0;
+    int in5 = 0;
+    int in6 = 0;
+    int in7 = 0;
+    int ou1 = 0;
+    int ou2 = 0;
+    int ou3 = 0;
+    float bckVolt = 0.0;
+    float pwrVolt = 0.0;
+    float com1 = 0.0;
+    float com2 = 0.0; 
 };
 class Generated {
     public:

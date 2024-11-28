@@ -49,24 +49,24 @@ void Generated::initializePinsFromJson(const char* json, const char* bitmask) {
   int bitIndex = strlen(bitmask) - 1; // Empieza desde el último bit
   for (JsonPair keyValue : doc.as<JsonObject>()) {
     int pin = keyValue.value().as<int>(); // Extrae el valor del pin
-    Serial.print("Iterando: ");
+    /*Serial.print("Iterando: ");
     Serial.print(keyValue.key().c_str());
     Serial.print(" con pin ");
     Serial.print(pin);
     Serial.print(" y bitmask[");
     Serial.print(bitIndex);
     Serial.print("] = ");
-    Serial.println(bitmask[bitIndex]);
+    Serial.println(bitmask[bitIndex]);*/
 
     // Comprueba si el bit está activo y si el pin es válido
     if (bitmask[bitIndex] == '1' && pin > 0) {
-      Serial.print("Pin para activar: ");
-      Serial.println(pin);
+      /*Serial.print("Pin para activar: ");
+      Serial.println(pin);*/
       pinMode(pin, INPUT);
-      Serial.print("Pin inicializado desde JSON: ");
+      /*Serial.print("Pin inicializado desde JSON: ");
       Serial.print(keyValue.key().c_str());
       Serial.print(" -> ");
-      Serial.println(pin);
+      Serial.println(pin);*/
     } else {
       Serial.println("Condición no cumplida.");
     }
@@ -90,12 +90,12 @@ void Generated::initializePinsFromJson(const char* json, const char* bitmask) {
       else if (key == "in1") ioState.in1 = value;
       else if (key == "in2") ioState.in2 = value;
       else if (key == "in3") ioState.in3 = value;
-      Serial.print("Lectura del pin ");
+      /*Serial.print("Lectura del pin ");
       Serial.print(keyValue.key().c_str());
       Serial.print(" (");
       Serial.print(pin);
       Serial.print("): ");
-      Serial.println(value);
+      Serial.println(value);*/
     }
     bitIndex--;
   }

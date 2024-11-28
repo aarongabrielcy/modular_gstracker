@@ -9,12 +9,15 @@ public:
     WebServerHandler(ConfigStorage& config);
     void begin();
     void handleClient();
-
+    bool handleRoot();
+    String getServerIP();
+    int getServerPort();
 private:
     WebServer server;
     ConfigStorage& configStorage;
-    void handleRoot();
     void handleSetConfig();
+    String serverIP;
+    int serverPort;
 };
 
 #endif

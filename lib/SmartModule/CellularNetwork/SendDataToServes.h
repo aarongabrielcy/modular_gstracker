@@ -10,10 +10,9 @@ class SendDataToServes {
         SendDataToServes(SIM7600& sim7600);
         String sendData(String message);
         String readData(String message, int timeout);
-
+        void configureTCP(const String& server, int port);
     private:
         SIM7600& simModule;
-        void configureTCP(const String& server, int port);
         bool validTCP();
 
 };
