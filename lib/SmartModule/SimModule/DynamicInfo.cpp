@@ -7,15 +7,13 @@ DynamicInfo::DynamicInfo(SIM7600& sim7600) : simModule(sim7600) {}  // Inicializ
 void DynamicInfo::getCPSI(){
     String cpsi_cmd = "AT+CPSI?";
     String cpsi = simModule.sendCommandWithResponse(cpsi_cmd.c_str(), 4000);
-    if(!cpsi){
+    //agregar validación opteniendo el resultado "OFFLINE" o sin tarjeta SIM
+    if(cpsi){
         cellID = getValueCPSI(cpsi, CELLID);
         mcc = getValueCPSI(cpsi, MCC);
         mnc = getValueCPSI(cpsi, MNC);
         lac = getValueCPSI(cpsi, LAC);
         rxLev = getValueCPSI(cpsi, RXLEV);
-    }else{
-        Serial.print("no data getCPSI: ");
-        Serial.println(cpsi);
     }
 }
 

@@ -28,80 +28,75 @@ void Generated::turnOff() {
   digitalWrite(pinOut, LOW);
 }
 
-Generated::IOGen Generated::stateInputs(const String &inputs){
+/*Generated::InOutState Generated::stateInputs(const String &inputs){
   
-}
-
-void Generated::initIO(char* activeIn, char* activeOut){
-  /*InState inState;
-  OutState outState;
-
-  int inActive = pinsActive(activeIn); 
-  int outActive = pinsActive(activeOut);*/
-
-
- }
-
-
-
- int pinsActive(const char* pins){
-  uint8_t byteValue = strtol(pins, NULL, 2); // Convierte el string binario a un entero
-  int count = 0;
-
-  while (byteValue) {
-    count += (byteValue & 1); // Suma 1 si el bit menos significativo está activo
-    byteValue >>= 1; // Desplaza un bit a la derecha
-  }
-
-  return count;
- }
-
- void Generated::initializePinsFromJson(const char* json, const char* bitmask){
+}*/
+void Generated::initializePinsFromJson(const char* json, const char* bitmask) {
+  /*Serial.print("Máscara de bits recibida: ");
+  Serial.println(bitmask);
+  Serial.print("JSON recibido: ");
+  Serial.println(json);*/
 
   DeserializationError error = deserializeJson(doc, json);
-
-  // Manejo de errores de JSON
   if (error) {
     Serial.print("Error al procesar JSON: ");
     Serial.println(error.f_str());
     return;
   }
+  /*Serial.println("Contenido del JSON deserializado:");
+  serializeJsonPretty(doc, Serial);
+  Serial.println();*/
+  int bitIndex = strlen(bitmask) - 1; // Empieza desde el último bit
+  for (JsonPair keyValue : doc.as<JsonObject>()) {
+    int pin = keyValue.value().as<int>(); // Extrae el valor del pin
+    Serial.print("Iterando: ");
+    Serial.print(keyValue.key().c_str());
+    Serial.print(" con pin ");
+    Serial.print(pin);
+    Serial.print(" y bitmask[");
+    Serial.print(bitIndex);
+    Serial.print("] = ");
+    Serial.println(bitmask[bitIndex]);
 
-  int bitIndex = 0; // Para iterar sobre la máscara de bits
-    for (JsonPair keyValue : doc.as<JsonObject>()) {
-      int pin = keyValue.value().as<int>(); // Extrae el valor del pin
-      if (bitmask[bitIndex] == '1' && pin > 0) {
-        pinMode(pin, INPUT);
-        Serial.print("Pin inicializado desde JSON: ");
-        Serial.print(keyValue.key().c_str());
-        Serial.print(" -> ");
-        Serial.println(pin);
-      }
-      bitIndex++;
+    // Comprueba si el bit está activo y si el pin es válido
+    if (bitmask[bitIndex] == '1' && pin > 0) {
+      Serial.print("Pin para activar: ");
+      Serial.println(pin);
+      pinMode(pin, INPUT);
+      Serial.print("Pin inicializado desde JSON: ");
+      Serial.print(keyValue.key().c_str());
+      Serial.print(" -> ");
+      Serial.println(pin);
+    } else {
+      Serial.println("Condición no cumplida.");
     }
- }
-
+    bitIndex--; // Decrementa para recorrer el bitmask en orden inverso
+  }
+}
  void Generated::readPinsFromJson(const char* bitmask) {
-    IOGen ioGen; //corregir la funcion!
-  int bitIndex = 0; // Para iterar sobre la máscara de bits
+  
+  int bitIndex = strlen(bitmask) - 1; // Para iterar sobre la máscara de bits
+  /*Serial.println("Validando el contenido del JSON:");
+  serializeJsonPretty(doc, Serial);
+  Serial.println();*/
   for (JsonPair keyValue : doc.as<JsonObject>()) {
     int pin = keyValue.value().as<int>();
     if (bitmask[bitIndex] == '1' && pin > 0) {
       int value = digitalRead(pin);
+      String key = keyValue.key().c_str();
+
+      // Asigna valores al struct basado en la clave
+      if (key == "ign") ioState.ign = value;
+      else if (key == "in1") ioState.in1 = value;
+      else if (key == "in2") ioState.in2 = value;
+      else if (key == "in3") ioState.in3 = value;
       Serial.print("Lectura del pin ");
       Serial.print(keyValue.key().c_str());
       Serial.print(" (");
       Serial.print(pin);
       Serial.print("): ");
       Serial.println(value);
-      if(keyValue.key().c_str() == "ign"){
-        ioGen.ign = value;
-      }else if(keyValue.key().c_str() == "in1") {
-        ioGen.in1 = value;
-      }else if(keyValue.key().c_str() == "in2"){
-        ioGen.in2 = value;
-      }
     }
-    bitIndex++;
+    bitIndex--;
   }
 }

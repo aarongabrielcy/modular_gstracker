@@ -55,7 +55,7 @@ void setup() {
 
   // Iniciar servidor web
   webServerHandler.begin();
-    generated.initializePinsFromJson(INPUTS, INPUTS_ACTIVE);
+  generated.initializePinsFromJson(INPUTS, INPUTS_ACTIVE);
   
 }
 
@@ -126,7 +126,8 @@ void loop() {
           //crea un modulo donde procese el tipo de reporte a mandar al servidor
           message = String(HEADER)+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
           +gpsData.date+SMCLN+gpsData.utc_time+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
-          +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix()+SMCLN+ignState;
+          +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix()+SMCLN
+          +generated.ioState.in3+generated.ioState.in2+generated.ioState.in1+generated.ioState.ign;
         }
             
       Serial.println(sendDataToServes.sendData(message) );

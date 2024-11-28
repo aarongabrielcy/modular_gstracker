@@ -21,7 +21,7 @@ int activeConstellation(){
 bool Connection::ReadDataGNSS(){
     String cgpsinfo_cmd = "AT+CGNSSINFO";
     String cgpsinfo = simModule.sendCommandWithResponse(cgpsinfo_cmd.c_str(), 4000);
-    if(cgpsinfo == ",,,,,,,,"){
+    if(cgpsinfo == ",,,,,,,,,,,,,,,"){
         DEBUG == true? fix = 1 : fix = 0;
         Serial.println("GNSS DATA DEBUG => "+ String(GNSS_DEBUG) );
         GPSData parsedData = ParseData(GNSS_DEBUG);
@@ -67,14 +67,7 @@ Connection::GPSData Connection::ParseData(const String &data){
     gpsData.hdop = tokens[14].toFloat();
     gpsData.vdop = tokens[15].toFloat();
 
-    //datos a mandar al servidor
-    /*vlat = gpsData.latitude;
-    vlon = gpsData.longitude;
-    vspeed = gpsData.speed;
-    gpsData.course = vcourse;
-    gpsData.gps_svs = num_satt;*/ //este valor debe ser dinámico e indicarle desde la app de configuración que consteleción va a mandar este dato (GPS, GALILEO, GLONASS)
-    //serializar "gpsData" y mandar en la app para ver los datos en tiempo real de GPS
-    // Guardar el último gpsData procesado
+    
     lastGPSData = gpsData;
     return gpsData;
 }
@@ -169,11 +162,6 @@ void Connection::printGPSData(const GPSData &data) {
 }
 
 int Connection::getFix() { return fix; }
-/*float Connection::getLat() { return vlat; }
-float Connection::getLon() { return vlon; }
-float Connection::getSpeed() { return vspeed; }
-float Connection::getCourse() { return vcourse; }
-int Connection::getSatt() { return num_satt; }*/
 Connection::GPSData Connection::getLastGPSData() {return lastGPSData;}
 
 

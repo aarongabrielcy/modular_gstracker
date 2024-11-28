@@ -27,11 +27,10 @@
 #define SIM7600_PWRKEY_PIN 4   // Pin de encendido (PWRKEY) del SIM7600
 #define SIM7600_RST_PIN 5      // Pin de reinicio (RESET) del SIM7600
 
-#define INPUTS "{\"ign\": 10, \"in1\": 11, \"in2\": 12, \"in3\": 16, \"in4\": 0, \"in5\": 0, \"in6\": 0, \"in7\": 0}"
-
 #define PIN_GPIO_BKB      (8)
 #define PIN_GPIO_BAT      (9)
 
+#define INPUTS "{\"ign\": 10, \"in1\": 11, \"in2\": 12, \"in3\": 16, \"in4\": 0, \"in5\": 0, \"in6\": 0, \"in7\": 0}"
 #define OUTPUTS "{\"out1\": 13, \"out2\": 14, \"out3\": 0, \"out4\": 0, \"out5\": 0, \"rsv1\": 0, \"rsv2\": 0, \"rsv3\": 0}"
 
 //REPORT FORMAR MARKS
