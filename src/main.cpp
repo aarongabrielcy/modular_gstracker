@@ -57,10 +57,13 @@ void setup() {
   webServerHandler.begin();
   //valida si puedes configurar el servidor TCP antes de que la SIM se conecte a la red.
   if(webServerHandler.handleRoot() ){
-    sendDataToServes.configureTCP(webServerHandler.getServerIP(), webServerHandler.getServerPort());
+    Serial.print("tcp server: ");
+    Serial.println(webServerHandler.getServerIP() );
+    Serial.print("port tcp: ");
+    Serial.println(webServerHandler.getServerPort());
+    sendDataToServes.configureTCP(webServerHandler.getServerIP(), webServerHandler.getServerPort() );
   }
   generated.initializePinsFromJson(INPUTS, INPUTS_ACTIVE);
-  
 }
 
 void loop() {
@@ -107,7 +110,7 @@ void loop() {
       }
       delay(1000);
     }else{
-      Serial.println("## SIM insertada!");
+      //Serial.println("## SIM insertada!");
       delay(1000);
     }
   }
@@ -122,7 +125,7 @@ void loop() {
       Connection::GPSData gpsData = connection.getLastGPSData();
       //gpsInfo( gpsData);
       previous_time_send = current_time;  // Actualizar el tiempo anterior
-        if(!connection.getFix()){
+        if(!connection.getFix() ) {
           message = String(HEADER)+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
           +dateTimeMS.getValueUTC()+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
           +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix();

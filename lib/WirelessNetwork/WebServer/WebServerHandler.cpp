@@ -17,8 +17,11 @@ void WebServerHandler::handleClient() {
 bool WebServerHandler::handleRoot() {
     String message = "Configuración actual:\n";
     if(configStorage.getServerIP()){
+        serverIP = configStorage.getServerIP();
+        serverPort = configStorage.getServerPort();
         message += "IP del servidor: " + configStorage.getServerIP() + "\n";
         message += "Puerto del servidor: " + String(configStorage.getServerPort());
+        Serial.println("message => "+ message);
         server.send(200, "text/plain", message);
         return true;
     }
