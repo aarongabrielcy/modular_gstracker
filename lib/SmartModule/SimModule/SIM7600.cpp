@@ -1,8 +1,8 @@
 #include "SIM7600.h"
 #include "Utils/Utils.h"
 // Inicialización de la constante estática de comandos permitidos
-const char* SIM7600::allowedCommands[26] = {
-    "AT", "CFUN", "CGDCONT","CGDSCONT","COPS", "CSQ", "NETOPEN", "CIPOPEN", "CIPCLOSE", "CIPMODE", "CGACT", "SIMEI", "CCID", "CPSI", "CCLK", "CGPS", "CGPSINFO", "CGPSCOLD", "CGPSHOT", "CGNSSINFO", "CREG", "CGPADDR","CGPSNMEA","CMEE","CPIN", "CSPN"
+const char* SIM7600::allowedCommands[27] = {
+    "AT", "CFUN", "CGDCONT","CGDSCONT","COPS", "CSQ", "NETOPEN", "CIPOPEN", "CIPSEND", "CIPCLOSE", "CIPMODE", "CGACT", "SIMEI", "CCID", "CPSI", "CCLK", "CGPS", "CGPSINFO", "CGPSCOLD", "CGPSHOT", "CGNSSINFO", "CREG", "CGPADDR","CGPSNMEA","CMEE","CPIN", "CSPN"
 };
 
 // Constructor
@@ -114,8 +114,27 @@ int SIM7600::commandType(const String& command) {
   }else if (command.startsWith("AT+") && command.indexOf('=') == -1){
    //Serial.println("Es un comando de ejecución (EXECUTE).");
    return EXECUTE;
-   }else{ 
+  }else if(command.startsWith("STT") ){  
+    Serial.println("ES una Cadena de texto (SEND).");
+    return SEND;
+  }else{ 
     //Serial.println("Tipo de comando desconocido.");
     return UNKNOWN;
   }
+}
+
+String SIM7600::sendReadDataToServer(const String& message, int timeout) {
+  simSerial.println(message);  // Enviar comando  
+  String response = "";
+  long startTime = millis();
+  while ((millis() - startTime) < timeout) {
+    if (simSerial.available()) {
+      char c = simSerial.read();
+      response += c;
+    }
+  }
+
+  Serial.println("Respuesta completa: ");
+  Serial.println(response);
+  return response;
 }

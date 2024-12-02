@@ -108,11 +108,11 @@ void loop() {
     }
   }
   if(!stateCfgPdp && stateSIM){
-    //Serial.println("configurando PDP");
+    Serial.println("configurando PDP");
     stateCfgPdp = networkManager.configurePDP(TELCEL, 1);
   }
   if(stateCfgPdp && stateSIM){
-    if(sendDataToServes.validTCP() && !stCfgTcp) {
+    if(sendDataToServes.validTcpNet() && !stCfgTcp) {
       if(webServerHandler.handleRoot() ){
        stCfgTcp = sendDataToServes.configureTCP(webServerHandler.getServerIP(), webServerHandler.getServerPort() );
       }
@@ -125,15 +125,19 @@ void loop() {
       previous_time_send = current_time;  // Actualizar el tiempo anterior
         if(!connection.getFix() ) {
           message = String(HEADER)+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
-          +dateTimeMS.getValueUTC()+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
-          +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix();
-        }else{
-          //crea un modulo donde procese el tipo de reporte a mandar al servidor
-          message = String(HEADER)+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
-          +gpsData.date+SMCLN+gpsData.utc_time+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
+          +dateTimeMS.getValueUTC()+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getMNC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
           +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix()+SMCLN
           +generated.ioState.in7+generated.ioState.in6+generated.ioState.in5+generated.ioState.in4+generated.ioState.in3+generated.ioState.in2
-          +generated.ioState.in1+generated.ioState.ign+SMCLN;
+          +generated.ioState.in1+generated.ioState.ign+SMCLN+generated.ioState.rsv3+generated.ioState.rsv2+generated.ioState.rsv1+generated.ioState.ou5
+          +generated.ioState.ou4+generated.ioState.ou3+generated.ioState.ou2+generated.ioState.ou1+SMCLN+CADENA_FALTANTE;
+        }else {
+          //crea un modulo donde procese el tipo de reporte a mandar al servidor
+          message = String(HEADER)+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
+          +gpsData.date+SMCLN+gpsData.utc_time+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getMNC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
+          +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix()+SMCLN
+          +generated.ioState.in7+generated.ioState.in6+generated.ioState.in5+generated.ioState.in4+generated.ioState.in3+generated.ioState.in2
+          +generated.ioState.in1+generated.ioState.ign+SMCLN+generated.ioState.rsv3+generated.ioState.rsv2+generated.ioState.rsv1+generated.ioState.ou5
+          +generated.ioState.ou4+generated.ioState.ou3+generated.ioState.ou2+generated.ioState.ou1+SMCLN+CADENA_FALTANTE;
         }
             
       Serial.println(sendDataToServes.sendData(message) );

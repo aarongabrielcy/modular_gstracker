@@ -18,16 +18,17 @@ bool Connection::activeModuleSat(int state){
 int activeConstellation(){ 
     return 0;
 }
-bool Connection::ReadDataGNSS(){
+bool Connection::ReadDataGNSS() {
     String cgpsinfo_cmd = "AT+CGNSSINFO";
     String cgpsinfo = simModule.sendCommandWithResponse(cgpsinfo_cmd.c_str(), 4000);
-    if(cgpsinfo == ",,,,,,,,,,,,,,,"){
+    if(cgpsinfo == ",,,,,,,,,,,,,,,") {
         DEBUG == true? fix = 1 : fix = 0;
         //Serial.println("GNSS DATA DEBUG => "+ String(GNSS_DEBUG) );
         GPSData parsedData = ParseData(GNSS_DEBUG);
+        //GPSData parsedData = ParseData(cgpsinfo);
         //Connection::printGPSData(parsedData);
         return false;
-    }else{
+    }else {
         fix = 1;
         //Serial.println("GNSS DATA => "+ cgpsinfo);
         GPSData parsedData = ParseData(cgpsinfo);
