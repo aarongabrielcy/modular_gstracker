@@ -57,8 +57,8 @@ String SIM7600::sendCommandWithResponse(const char* command, int timeout) {
     }
   }
 
-  Serial.println("Respuesta completa: ");
-  Serial.println(response);
+  /*Serial.println("Respuesta completa: ");
+  Serial.println(response);}*/
   return processResponse(command, formattedCommand, response);
 }
 

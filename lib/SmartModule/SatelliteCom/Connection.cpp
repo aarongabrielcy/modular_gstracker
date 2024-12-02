@@ -1,4 +1,4 @@
-#include "connection.h"
+#include "Connection.h"
 #include "SimModule/SIM7600.h"
 
 Connection::Connection(SIM7600& sim7600) : simModule(sim7600) {}
