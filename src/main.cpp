@@ -10,7 +10,7 @@
 #include "WebServer/WebServerHandler.h"
 #include "CellularNetwork/SendDataToServes.h"
 #include "SatelliteCom/Connection.h"
-#include "Generated/generated.h"
+#include "Generated/Generated.h"
 #include "Calculated/Calculated.h"
 
 SIM7600 simModule(Serial1);  // Instancia de SIM7600 creada en main
@@ -55,14 +55,6 @@ void setup() {
 
   // Iniciar servidor web
   webServerHandler.begin();
-  //valida si puedes configurar el servidor TCP antes de que la SIM se conecte a la red.
-  if(webServerHandler.handleRoot() ){
-    Serial.print("tcp server: ");
-    Serial.println(webServerHandler.getServerIP() );
-    Serial.print("port tcp: ");
-    Serial.println(webServerHandler.getServerPort());
-    sendDataToServes.configureTCP(webServerHandler.getServerIP(), webServerHandler.getServerPort() );
-  }
   generated.initializePinsFromJson(INPUTS, INPUTS_ACTIVE);
 }
 
@@ -70,6 +62,7 @@ void loop() {
   stateSIM = false;
   stateGnss = false;
   static bool stateCfgPdp = false;
+  static bool stCfgTcp = false;
   handleSerialInput();
   bool ignState = generated.readInput();
   ignState ? 1 : 0;
@@ -103,7 +96,7 @@ void loop() {
       //reincio suave al módulo sim
       count_reset++;
       Serial.println("** SIM no insertada! => ");
-      if(count_reset == 12){
+      if(count_reset == 12 ) {
         Serial.println("Reinicio suave del modulo: "+networkManager.softReset());
         count_reset = 0;
         stateCfgPdp = false;
@@ -119,6 +112,11 @@ void loop() {
     stateCfgPdp = networkManager.configurePDP(TELCEL, 1);
   }
   if(stateCfgPdp && stateSIM){
+    if(sendDataToServes.validTCP() && !stCfgTcp) {
+      if(webServerHandler.handleRoot() ){
+       stCfgTcp = sendDataToServes.configureTCP(webServerHandler.getServerIP(), webServerHandler.getServerPort() );
+      }
+    }
     //simInfo();
     //gnssInfo();
     if (current_time - previous_time_send >= SEND_DATA_TIMEOUT) {
