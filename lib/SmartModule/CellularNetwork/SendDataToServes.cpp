@@ -52,7 +52,9 @@ bool SendDataToServes::validTcpNet() {
   }else if(netopen == "0"){
     SendDataToServes::activeTCP();
   }else if(netopen.indexOf("+IPD21") ){
+    Serial.println("RSP CMD => " + netopen);
     SendDataToServes::extractCMDData(netopen);
+    return true;
   }
   return false;
 }
@@ -69,7 +71,7 @@ bool SendDataToServes::getPositionServer() {
   Serial.println("rsp cip_state => "+ cip_state);
   if(cip_state == "0123456789"){
     return false;
-  }else if(cip_state.indexOf(',-1')){
+  }else if(cip_state.indexOf(",-1") != -1){
     return true;
   }
   return false;
@@ -77,7 +79,7 @@ bool SendDataToServes::getPositionServer() {
 
 String SendDataToServes::extractCMDData(String input) {
   // Encuentra la posición donde comienza "CMD;"
-  int startIndex = input.indexOf("CMD;");
+  int startIndex = input.indexOf("CMD");
   if (startIndex == -1) {
     // Si no encuentra "CMD;", retorna una cadena vacía
     return "";
@@ -85,6 +87,6 @@ String SendDataToServes::extractCMDData(String input) {
 
   // Extrae la subcadena desde "CMD;" hasta el final
   String result = input.substring(startIndex);
-
+  Serial.println("comando recibido => " + result);
   return result;
 }

@@ -9,8 +9,8 @@
 #define CONFIG_H
 
 // Pines para el módulo SIM7600
-#define SIM7600_RX_PIN 18      // Pin RX del módulo SIM7600 (conectar al TX del ESP32)
-#define SIM7600_TX_PIN 17      // Pin TX del módulo SIM7600 (conectar al RX del ESP32)
+#define SIM7600_RX_PIN 18      // Pin RX del módulo SIM7600 (conectar al TX del ESP32) 18 5
+#define SIM7600_TX_PIN 17      // Pin TX del módulo SIM7600 (conectar al RX del ESP32) 17 4
 
 // Tiempo de espera predeterminado para comandos AT (en milisegundos)
 #define AT_COMMAND_TIMEOUT 5000
@@ -24,8 +24,10 @@
 #define SERIAL_BAUD_RATE 115200
 
 // Pines de encendido y reseteo del módulo SIM7600 (si aplica)
-#define SIM7600_PWRKEY_PIN 4   // Pin de encendido (PWRKEY) del SIM7600
-#define SIM7600_RST_PIN 5      // Pin de reinicio (RESET) del SIM7600
+#define POWER_KEY_PIN 41   // Pin de encendido (PWRKEY) del SIM7600
+#define POWER_SIM_PIN 38
+#define POWER_LED_PIN 20
+//#define SIM7600_RST_PIN 5      // Pin de reinicio (RESET) del SIM7600
 
 #define PIN_GPIO_BKB      (8)
 #define PIN_GPIO_BAT      (9)
@@ -53,7 +55,12 @@
 #define DEFAULT_WEB_SVR 80
 
 //Static values
-#define HEADER "STT"
+struct Headers {
+    static constexpr const char *STT = "STT";
+    static constexpr const char *ALT = "ALT";
+    static constexpr const char *RES = "RES";
+    static constexpr const char *CMD = "CMD";
+};
 #define REPORT_MAP "3FFFFF"
 #define MODEL_DEVICE 32
 #define SW_VER "1.0.0"
