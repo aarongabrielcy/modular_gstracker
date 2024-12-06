@@ -11,13 +11,14 @@ public:
   void begin();
   String sendCommandWithResponse(const char* command, int timeout = AT_COMMAND_TIMEOUT);
   String processResponse(const String& command, const String& fcommand, const String& response);
+  String sendReadDataToServer(const String& message, int timeout);
 
 private:
   HardwareSerial& simSerial;
   bool isAllowedCommand(const String& command);
   int commandType(const String& command);
 
-  static const char* allowedCommands[26];  // Declaración de miembro estático
+  static const char* allowedCommands[27];  // Declaración de miembro estático
 };
 
 #endif

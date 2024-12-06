@@ -12,6 +12,7 @@ enum cmdType {
   READ = 1,
   WRITE = 2,
   EXECUTE = 3,
+  SEND = 4,
   UNKNOWN = -1
 };
 //clasificar los comandos por lectura, escritura, ejecución y test

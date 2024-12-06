@@ -17,6 +17,11 @@ struct InOutState {
     int ou1 = 0;
     int ou2 = 0;
     int ou3 = 0;
+    int ou4 = 0;
+    int ou5 = 0;
+    int rsv1 = 0;
+    int rsv2 = 0;
+    int rsv3 = 0;
     float bckVolt = 0.0;
     float pwrVolt = 0.0;
     float com1 = 0.0;

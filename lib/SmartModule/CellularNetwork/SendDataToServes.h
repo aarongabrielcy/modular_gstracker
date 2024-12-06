@@ -11,10 +11,12 @@ class SendDataToServes {
         String sendData(String message);
         String readData(String message, int timeout);
         bool configureTCP(const String& server, int port);
-        bool validTCP();
+        bool validTcpNet();
     private:
         SIM7600& simModule;
         void activeTCP();
+        bool getPositionServer();
+        String extractCMDData(String input);
 
 };
 
