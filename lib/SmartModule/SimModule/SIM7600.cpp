@@ -1,8 +1,8 @@
 #include "SIM7600.h"
-#include "Utils/Utils.h"
+//#include "Utils/Utils.h"
 // Inicialización de la constante estática de comandos permitidos
-const char* SIM7600::allowedCommands[27] = {
-    "AT", "CFUN", "CGDCONT","CGDSCONT","COPS", "CSQ", "NETOPEN", "CIPOPEN", "CIPSEND", "CIPCLOSE", "CIPMODE", "CGACT", "SIMEI", "CCID", "CPSI", "CCLK", "CGPS", "CGPSINFO", "CGPSCOLD", "CGPSHOT", "CGNSSINFO", "CREG", "CGPADDR","CGPSNMEA","CMEE","CPIN", "CSPN"
+const char* SIM7600::allowedCommands[29] = {
+    "AT", "CFUN", "CGDCONT","CGDSCONT","COPS", "CSQ", "NETOPEN", "CIPOPEN", "CIPSEND", "CIPCLOSE", "CIPMODE", "CGACT", "SIMEI", "CCID", "CPSI", "CNMP", "CNSMOD",  "CCLK", "CGPS", "CGPSINFO", "CGPSCOLD", "CGPSHOT", "CGNSSINFO", "CREG", "CGPADDR","CGPSNMEA","CMEE","CPIN", "CSPN"
 };
 
 // Constructor
@@ -123,7 +123,8 @@ int SIM7600::commandType(const String& command) {
   }
 }
 
-String SIM7600::sendReadDataToServer(const String& message, int timeout) {
+String SIM7600::sendReadDataToServer(const String& fcommand, const String& message, int timeout) {
+
   simSerial.println(message);  // Enviar comando  
   String response = "";
   long startTime = millis();
@@ -133,8 +134,13 @@ String SIM7600::sendReadDataToServer(const String& message, int timeout) {
       response += c;
     }
   }
-
-  Serial.println("Respuesta completa: ");
-  Serial.println(response);
-  return response;
+//agregar CIPCLOSED
+  /*Serial.println("Respuesta completa: ");
+  Serial.println(response);*/
+  
+  response.replace(message, "");
+  /*response.replace("+"+fcommand+": ", "");*/
+  response = trimResponse(response);
+  
+  return response; //devolver un JSON con el formato [{server: ""}, {port:0},{length:0},{response: ""}]
 }

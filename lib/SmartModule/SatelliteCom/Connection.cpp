@@ -23,6 +23,7 @@ bool Connection::ReadDataGNSS() {
     String cgpsinfo = simModule.sendCommandWithResponse(cgpsinfo_cmd.c_str(), 4000);
     if(cgpsinfo == ",,,,,,,,,,,,,,,") {
         DEBUG == true? fix = 1 : fix = 0;
+        genetated.turnOn();
         //Serial.println("GNSS DATA DEBUG => "+ String(GNSS_DEBUG) );
         GPSData parsedData = ParseData(GNSS_DEBUG);
         //GPSData parsedData = ParseData(cgpsinfo);

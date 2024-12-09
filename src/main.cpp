@@ -60,6 +60,7 @@ void setup() {
   // Iniciar servidor web
   webServerHandler.begin();
   generated.initializePinsFromJson(INPUTS, INPUTS_ACTIVE);
+  generated.initOutput(GNSS_LED_PIN);
 }
 
 void loop() {
@@ -68,13 +69,15 @@ void loop() {
   static bool stateCfgPdp = false;
   static bool stCfgTcp = false;
   handleSerialInput();
-  bool ignState = generated.readInput();
+  /*bool ignState = generated.readInput();
   ignState ? 1 : 0;
   if (ignState) {
+    Serial.println("Engine ON");
     generated.turnOn();
   } else {
+    Serial.println("Engine Off");
     generated.turnOff();
-  }
+  }*/
   /*Serial.print("Botón presionado: ");
   Serial.println(ignState ? "Sí" : "No");*/
 
@@ -143,8 +146,11 @@ void loop() {
           +generated.ioState.in1+generated.ioState.ign+SMCLN+generated.ioState.rsv3+generated.ioState.rsv2+generated.ioState.rsv1+generated.ioState.ou5
           +generated.ioState.ou4+generated.ioState.ou3+generated.ioState.ou2+generated.ioState.ou1+SMCLN+CADENA_FALTANTE;
         }
-            
-      Serial.println(sendDataToServes.sendData(message) );
+      if(!sendDataToServes.sendData(message)) {
+        stCfgTcp = false;
+      }
+      //Leer aquí respuesta del servidor   
+      //Serial.println(sendDataToServes.sendData(message) );
     }
     
   }

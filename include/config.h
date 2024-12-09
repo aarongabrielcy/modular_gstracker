@@ -9,14 +9,15 @@
 #define CONFIG_H
 
 // Pines para el módulo SIM7600
-#define SIM7600_RX_PIN 18      // Pin RX del módulo SIM7600 (conectar al TX del ESP32) 18 5
-#define SIM7600_TX_PIN 17      // Pin TX del módulo SIM7600 (conectar al RX del ESP32) 17 4
+#define SIM7600_RX_PIN 5      // Pin RX del módulo SIM7600 (conectar al TX del ESP32) 18 5
+#define SIM7600_TX_PIN 4      // Pin TX del módulo SIM7600 (conectar al RX del ESP32) 17 4
 
 // Tiempo de espera predeterminado para comandos AT (en milisegundos)
 #define AT_COMMAND_TIMEOUT 5000
 #define TEST_SIM_TIMEOUT 20000
 #define UPDATE_DATA_TIMEOUT 3000
 #define SEND_DATA_TIMEOUT 8000
+#define SEND_DATA_ING_OFF 600000
 // Velocidad de transmisión predeterminada (baud rate) para la comunicación serial con el módulo
 #define SIM7600_BAUD_RATE 115200
 
@@ -26,6 +27,7 @@
 // Pines de encendido y reseteo del módulo SIM7600 (si aplica)
 #define POWER_KEY_PIN 41   // Pin de encendido (PWRKEY) del SIM7600
 #define POWER_SIM_PIN 38
+#define GNSS_LED_PIN  19
 #define POWER_LED_PIN 20
 //#define SIM7600_RST_PIN 5      // Pin de reinicio (RESET) del SIM7600
 
