@@ -53,7 +53,6 @@ Connection::GPSData Connection::ParseData(const String &data){
             tokens[index] += data[i];
         }
     }
-
     // Asignar los valores a la estructura
     gpsData.mode = tokens[0].toInt();
     gpsData.gps_svs = tokens[1].toInt();
@@ -71,7 +70,6 @@ Connection::GPSData Connection::ParseData(const String &data){
     gpsData.pdop = tokens[13].toFloat();
     gpsData.hdop = tokens[14].toFloat();
     gpsData.vdop = tokens[15].toFloat();
-
     
     lastGPSData = gpsData;
     return gpsData;

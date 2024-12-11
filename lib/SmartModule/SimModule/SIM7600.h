@@ -20,7 +20,7 @@ private:
   int commandType(const String& command);
   String processDataToServer(String Response);
 
-  static const char* allowedCommands[30];  // Declaración de miembro estático
+  static const char* allowedCommands[31];  // Declaración de miembro estático
 };
 
 #endif

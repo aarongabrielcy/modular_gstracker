@@ -6,11 +6,11 @@
 class DateTime{
 public:
     DateTime(SIM7600& sim7600);  // Constructor que recibe una referencia a SIM7600
-    void getDateTime();
+    String getDateTime();
     String getValueUTC();
 
 private:
     SIM7600& simModule;  // Referencia al módulo SIM7600
-    String dtUTC;
+    //String dtUTC;
 };
 #endif

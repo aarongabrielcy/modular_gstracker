@@ -31,21 +31,28 @@ PowerOut powerOut;
 bool stateSIM;
 bool stateGnss;
 int count_reset = 0;
-int previous_time_update = 0;
-int previous_time_send = 0;
+unsigned long current_time = 0;
+unsigned long previous_time_update = 0;
+unsigned long previous_time_send = 0;
+unsigned long previous_time_ign_off = 0;
+const unsigned long sendDataTimeout = SEND_DATA_TIMEOUT;
+const unsigned long sendDataIgnOff = SEND_DATA_ING_OFF;
+
 int counter_10s = 0;
 String message;
 bool ignState;
-String event;
 bool LaststateIgnition = HIGH;
-int event_ign;
+bool fix;
+String datetime;
+int accumulated;
 
 void handleSerialInput();
 void updateData();
 void simInfo();
 void gnssInfo();
 void gpsInfo(Connection::GPSData gpsData);
-void ignition_event();
+void ignition_event(Connection::GPSData gpsData);
+void event_generated(Connection::GPSData gpsData, int event);
 
 void setup() {
   Serial.begin(SERIAL_BAUD_RATE);
@@ -70,35 +77,18 @@ void setup() {
 }
 
 void loop() {
-  event_ign = -1;
   stateSIM = false;
   stateGnss = false;
   static bool stateCfgPdp = false;
   static bool stCfgTcp = false;
   handleSerialInput();
-  ignition_event();
-  
-  generated.readInput() ? ignState = 0 : ignState = 1;
+  fix  = connection.ReadDataGNSS();
   Connection::GPSData gpsData = connection.getLastGPSData();
-  /*Serial.print("Botón presionado: ");
-  Serial.println(ignState ? "Sí" : "No");*/
-
-  unsigned long current_time = millis();
-  
-  if (current_time - previous_time_update >= UPDATE_DATA_TIMEOUT) {
-    previous_time_update = current_time;  // Actualizar el tiempo anterior
-      dynInfo.getCPSI(); // Validar que no se imprima hasta que tenga los datos "NO" vacíos
-      if(!connection.ReadDataGNSS() ){
-        dateTimeMS.getDateTime(); // La hora a veces no tiene sentido año 2080 
-        
-      }
-      generated.readPinsFromJson(INPUTS_ACTIVE);
-      //generated.stateIO(); 
-      //calculated.stateEvent(); 
-  }
-  //webServerHandler.serviceToApp();
-  // Manejar clientes HTTP
+  generated.readInput() ? ignState = 0 : ignState = 1;
+  ignition_event(gpsData);
+  current_time = millis();
   webServerHandler.handleClient();
+  
   if(!stateSIM) {
     //Serial.println("Validando estado de la SIMCARD");
     stateSIM = networkManager.readSIMInsert();
@@ -117,91 +107,63 @@ void loop() {
       delay(1000);
     }
   }
-  if(!stateCfgPdp && stateSIM){
+
+  
+  if (current_time - previous_time_update >= UPDATE_DATA_TIMEOUT) {
+    previous_time_update = current_time;  // Actualizar el tiempo anterior
+      dynInfo.getCPSI(); // Validar que no se imprima hasta que tenga los datos "NO" vacíos
+      if(!fix ){
+        datetime = dateTimeMS.getDateTime(); // La hora a veces no tiene sentido año 2080 
+      }else{
+        datetime = gpsData.date+SMCLN+gpsData.utc_time;
+      }
+      generated.readPinsFromJson(INPUTS_ACTIVE);
+      //generated.stateIO(); 
+      //calculated.stateEvent(); 
+  }
+  //webServerHandler.serviceToApp();
+  // Manejar clientes HTTP
+  
+  if(!stateCfgPdp && stateSIM) {
     Serial.println("configurando PDP");
     stateCfgPdp = networkManager.configurePDP(TELCEL, 1);
   }
-  if(stateCfgPdp && stateSIM){
+  if(stateCfgPdp && stateSIM) {
     if(sendDataToServes.validTcpNet() && !stCfgTcp) {
       if(webServerHandler.handleRoot() ){
        stCfgTcp = sendDataToServes.configureTCP(webServerHandler.getServerIP(), webServerHandler.getServerPort() );
       }
     }
-    //simInfo();
-    //gnssInfo();
-    if (current_time - previous_time_send >= SEND_DATA_TIMEOUT) {
+
+    message = String(Headers::STT)+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
+          +datetime+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getMNC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
+          +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+fix+SMCLN
+          +generated.ioState.in7+generated.ioState.in6+generated.ioState.in5+generated.ioState.in4+generated.ioState.in3+generated.ioState.in2
+          +generated.ioState.in1+ignState+SMCLN+generated.ioState.rsv3+generated.ioState.rsv2+generated.ioState.rsv1+generated.ioState.ou5
+          +generated.ioState.ou4+generated.ioState.ou3+generated.ioState.ou2+generated.ioState.ou1+SMCLN+CADENA_FALTANTE;
+
+    if(current_time - previous_time_send >= sendDataTimeout && ignState == 1) {
       
-      //gpsInfo( gpsData);
       previous_time_send = current_time;  // Actualizar el tiempo anterior
-        if(!connection.getFix() ) {
-          message = String(Headers::STT)+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
-          +dateTimeMS.getValueUTC()+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getMNC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
-          +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix()+SMCLN
-          +generated.ioState.in7+generated.ioState.in6+generated.ioState.in5+generated.ioState.in4+generated.ioState.in3+generated.ioState.in2
-          +generated.ioState.in1+ignState+SMCLN+generated.ioState.rsv3+generated.ioState.rsv2+generated.ioState.rsv1+generated.ioState.ou5
-          +generated.ioState.ou4+generated.ioState.ou3+generated.ioState.ou2+generated.ioState.ou1+SMCLN+CADENA_FALTANTE;
-        }else {
-          Serial.println("########### Trackeo con fix ############");
-          //crea un modulo donde procese el tipo de reporte a mandar al servidor
-          message = String(Headers::STT)+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
-          +gpsData.date+SMCLN+gpsData.utc_time+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getMNC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
-          +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix()+SMCLN
-          +generated.ioState.in7+generated.ioState.in6+generated.ioState.in5+generated.ioState.in4+generated.ioState.in3+generated.ioState.in2
-          +generated.ioState.in1+ignState+SMCLN+generated.ioState.rsv3+generated.ioState.rsv2+generated.ioState.rsv1+generated.ioState.ou5
-          +generated.ioState.ou4+generated.ioState.ou3+generated.ioState.ou2+generated.ioState.ou1+SMCLN+CADENA_FALTANTE;
-        }
+        
       if(!sendDataToServes.sendData(message)) {
         stCfgTcp = false;
       }
-      //Leer aquí respuesta del servidor   
-      //Serial.println(sendDataToServes.sendData(message) );
     }
-    
+    if(current_time - previous_time_ign_off >= sendDataIgnOff && ignState == 0) {
+      //gpsInfo( gpsData);
+      previous_time_ign_off = current_time;  // Actualizar el tiempo anterior
+       Serial.println("tiempo transcurrido con motor apagado => "); 
+      if(!sendDataToServes.sendData(message)) {
+        stCfgTcp = false;
+      }
+    }
   }
-  //// EVENT GENERATED
-  if (ignState == 1 && event_ign == 1) {
-    Serial.println("Engine ON");
-    if(!connection.getFix() ) {
-      event = String("ALT")+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
-          +dateTimeMS.getValueUTC()+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getMNC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
-          +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix()+SMCLN
-          +generated.ioState.in7+generated.ioState.in6+generated.ioState.in5+generated.ioState.in4+generated.ioState.in3+generated.ioState.in2
-          +generated.ioState.in1+ignState+SMCLN+generated.ioState.rsv3+generated.ioState.rsv2+generated.ioState.rsv1+generated.ioState.ou5
-          +generated.ioState.ou4+generated.ioState.ou3+generated.ioState.ou2+generated.ioState.ou1+SMCLN+33+";;";
-    }else{
-      event = String("ALT")+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
-          +gpsData.date+SMCLN+gpsData.utc_time+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getMNC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
-          +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix()+SMCLN
-          +generated.ioState.in7+generated.ioState.in6+generated.ioState.in5+generated.ioState.in4+generated.ioState.in3+generated.ioState.in2
-          +generated.ioState.in1+ignState+SMCLN+generated.ioState.rsv3+generated.ioState.rsv2+generated.ioState.rsv1+generated.ioState.ou5
-          +generated.ioState.ou4+generated.ioState.ou3+generated.ioState.ou2+generated.ioState.ou1+SMCLN+33+";;";
-    }
-    
-
-    generated.turnOn();
-    //Serial.println("Event => "+ event);
-    sendDataToServes.sendData(event);
-  } else if(ignState == 0 && event_ign == 0) {
-    Serial.println("Engine Off");
-    if(!connection.getFix() ) {
-      event = String("ALT")+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
-          +dateTimeMS.getValueUTC()+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getMNC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
-          +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix()+SMCLN
-          +generated.ioState.in7+generated.ioState.in6+generated.ioState.in5+generated.ioState.in4+generated.ioState.in3+generated.ioState.in2
-          +generated.ioState.in1+ignState+SMCLN+generated.ioState.rsv3+generated.ioState.rsv2+generated.ioState.rsv1+generated.ioState.ou5
-          +generated.ioState.ou4+generated.ioState.ou3+generated.ioState.ou2+generated.ioState.ou1+SMCLN+34+";;";
-    }else {
-      event = String("ALT")+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
-          +gpsData.date+SMCLN+gpsData.utc_time+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getMNC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
-          +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix()+SMCLN
-          +generated.ioState.in7+generated.ioState.in6+generated.ioState.in5+generated.ioState.in4+generated.ioState.in3+generated.ioState.in2
-          +generated.ioState.in1+ignState+SMCLN+generated.ioState.rsv3+generated.ioState.rsv2+generated.ioState.rsv1+generated.ioState.ou5
-          +generated.ioState.ou4+generated.ioState.ou3+generated.ioState.ou2+generated.ioState.ou1+SMCLN+34+";;";
-    }
-    generated.turnOff();
-    //Serial.println("Event => "+ event);
-    sendDataToServes.sendData(event);
-
+  if(gpsData.course > SEND_DATA_ANGLE && ignState == 1 && gpsData.speed != 0) {
+    Serial.println("### Manda trackeo en curva ###");
+    if(!sendDataToServes.sendData(message)) {
+        stCfgTcp = false;
+      }
   }
 }
 
@@ -213,15 +175,16 @@ void handleSerialInput() {
     Serial.println(response);
   }
 }
-void ignition_event() {
+void ignition_event(Connection::GPSData gpsData) {
   int StateIgnition = generated.readInput();
   if (StateIgnition == LOW && LaststateIgnition == HIGH) {
     Serial.println("*** ¡ignition ON! **** ");
-    event_ign = 1;
+    event_generated(gpsData, IGN_ON);
   
   }else if(StateIgnition == HIGH && LaststateIgnition == LOW) {
     Serial.println("**** ¡ignition OFF! ***** ");
-    event_ign = 0;
+    event_generated(gpsData, IGN_OFF);
+
   }
   LaststateIgnition = StateIgnition;
 }
@@ -269,7 +232,18 @@ void gpsInfo(Connection::GPSData gpsData){
     Serial.println(gpsData.speed);
 }
 
-void oiState(){
+void event_generated(Connection::GPSData gpsData, int event){
 
+  String data_event = "";
+  
+  data_event = String(Headers::ALT)+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
+      +datetime+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getMNC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
+      +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+fix+SMCLN
+      +generated.ioState.in7+generated.ioState.in6+generated.ioState.in5+generated.ioState.in4+generated.ioState.in3+generated.ioState.in2
+      +generated.ioState.in1+ignState+SMCLN+generated.ioState.rsv3+generated.ioState.rsv2+generated.ioState.rsv1+generated.ioState.ou5
+      +generated.ioState.ou4+generated.ioState.ou3+generated.ioState.ou2+generated.ioState.ou1+SMCLN+event+";;";
+ 
+  Serial.println("EVENT => "+data_event); 
+  sendDataToServes.sendData(data_event);
 }
 
