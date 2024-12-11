@@ -22,16 +22,19 @@ bool Connection::ReadDataGNSS() {
     String cgpsinfo_cmd = "AT+CGNSSINFO";
     String cgpsinfo = simModule.sendCommandWithResponse(cgpsinfo_cmd.c_str(), 4000);
     if(cgpsinfo == ",,,,,,,,,,,,,,,") {
-        DEBUG == true? fix = 1 : fix = 0;
-        genetated.turnOn();
+        fix = 0;
+        //DEBUG == true? fix = 1 : fix = 0;
+        //genetated.turnOn();
         //Serial.println("GNSS DATA DEBUG => "+ String(GNSS_DEBUG) );
-        GPSData parsedData = ParseData(GNSS_DEBUG);
-        //GPSData parsedData = ParseData(cgpsinfo);
+        //GPSData parsedData = ParseData(GNSS_DEBUG);
+        GPSData parsedData = ParseData(cgpsinfo);
+        Serial.println("GNSS DATA =# "+ cgpsinfo);
+
         //Connection::printGPSData(parsedData);
         return false;
     }else {
         fix = 1;
-        //Serial.println("GNSS DATA => "+ cgpsinfo);
+        Serial.println("GNSS DATA => "+ cgpsinfo);
         GPSData parsedData = ParseData(cgpsinfo);
         return true;
     }

@@ -1,8 +1,8 @@
 #include "SIM7600.h"
 //#include "Utils/Utils.h"
 // Inicialización de la constante estática de comandos permitidos
-const char* SIM7600::allowedCommands[29] = {
-    "AT", "CFUN", "CGDCONT","CGDSCONT","COPS", "CSQ", "NETOPEN", "CIPOPEN", "CIPSEND", "CIPCLOSE", "CIPMODE", "CGACT", "SIMEI", "CCID", "CPSI", "CNMP", "CNSMOD",  "CCLK", "CGPS", "CGPSINFO", "CGPSCOLD", "CGPSHOT", "CGNSSINFO", "CREG", "CGPADDR","CGPSNMEA","CMEE","CPIN", "CSPN"
+const char* SIM7600::allowedCommands[30] = {
+    "AT", "CFUN", "CGDCONT","CGDSCONT","COPS", "CSQ", "NETOPEN", "CIPOPEN", "CIPSEND", "CIPCLOSE", "CIPMODE", "CGACT", "SIMEI", "CCID", "CPSI", "CNMP", "CNSMOD",  "CCLK", "CTZU", "CGPS", "CGPSINFO", "CGPSCOLD", "CGPSHOT", "CGNSSINFO", "CREG", "CGPADDR","CGPSNMEA","CMEE","CPIN", "CSPN"
 };
 
 // Constructor

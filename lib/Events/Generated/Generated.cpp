@@ -18,9 +18,6 @@ void Generated::initOutput(int pinOut) {
     this->pinOut = pinOut;
     pinMode(pinOut, OUTPUT);
     pinMode(13, OUTPUT);
-    Serial.println("Salida Inicializada!"+pinOut);
-    digitalWrite(pinOut, LOW);
-    digitalWrite(13, LOW);
 }
 
 void Generated::turnOn() {

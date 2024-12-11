@@ -35,12 +35,17 @@ int previous_time_update = 0;
 int previous_time_send = 0;
 int counter_10s = 0;
 String message;
+bool ignState;
+String event;
+bool LaststateIgnition = HIGH;
+int event_ign;
 
 void handleSerialInput();
 void updateData();
 void simInfo();
 void gnssInfo();
 void gpsInfo(Connection::GPSData gpsData);
+void ignition_event();
 
 void setup() {
   Serial.begin(SERIAL_BAUD_RATE);
@@ -61,23 +66,20 @@ void setup() {
   webServerHandler.begin();
   generated.initializePinsFromJson(INPUTS, INPUTS_ACTIVE);
   generated.initOutput(GNSS_LED_PIN);
+  generated.initInput(10);
 }
 
 void loop() {
+  event_ign = -1;
   stateSIM = false;
   stateGnss = false;
   static bool stateCfgPdp = false;
   static bool stCfgTcp = false;
   handleSerialInput();
-  /*bool ignState = generated.readInput();
-  ignState ? 1 : 0;
-  if (ignState) {
-    Serial.println("Engine ON");
-    generated.turnOn();
-  } else {
-    Serial.println("Engine Off");
-    generated.turnOff();
-  }*/
+  ignition_event();
+  
+  generated.readInput() ? ignState = 0 : ignState = 1;
+  Connection::GPSData gpsData = connection.getLastGPSData();
   /*Serial.print("Botón presionado: ");
   Serial.println(ignState ? "Sí" : "No");*/
 
@@ -88,6 +90,7 @@ void loop() {
       dynInfo.getCPSI(); // Validar que no se imprima hasta que tenga los datos "NO" vacíos
       if(!connection.ReadDataGNSS() ){
         dateTimeMS.getDateTime(); // La hora a veces no tiene sentido año 2080 
+        
       }
       generated.readPinsFromJson(INPUTS_ACTIVE);
       //generated.stateIO(); 
@@ -96,7 +99,7 @@ void loop() {
   //webServerHandler.serviceToApp();
   // Manejar clientes HTTP
   webServerHandler.handleClient();
-  if(!stateSIM){
+  if(!stateSIM) {
     //Serial.println("Validando estado de la SIMCARD");
     stateSIM = networkManager.readSIMInsert();
     if(!stateSIM){
@@ -127,7 +130,7 @@ void loop() {
     //simInfo();
     //gnssInfo();
     if (current_time - previous_time_send >= SEND_DATA_TIMEOUT) {
-      Connection::GPSData gpsData = connection.getLastGPSData();
+      
       //gpsInfo( gpsData);
       previous_time_send = current_time;  // Actualizar el tiempo anterior
         if(!connection.getFix() ) {
@@ -135,15 +138,16 @@ void loop() {
           +dateTimeMS.getValueUTC()+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getMNC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
           +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix()+SMCLN
           +generated.ioState.in7+generated.ioState.in6+generated.ioState.in5+generated.ioState.in4+generated.ioState.in3+generated.ioState.in2
-          +generated.ioState.in1+generated.ioState.ign+SMCLN+generated.ioState.rsv3+generated.ioState.rsv2+generated.ioState.rsv1+generated.ioState.ou5
+          +generated.ioState.in1+ignState+SMCLN+generated.ioState.rsv3+generated.ioState.rsv2+generated.ioState.rsv1+generated.ioState.ou5
           +generated.ioState.ou4+generated.ioState.ou3+generated.ioState.ou2+generated.ioState.ou1+SMCLN+CADENA_FALTANTE;
         }else {
+          Serial.println("########### Trackeo con fix ############");
           //crea un modulo donde procese el tipo de reporte a mandar al servidor
           message = String(Headers::STT)+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
           +gpsData.date+SMCLN+gpsData.utc_time+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getMNC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
           +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix()+SMCLN
           +generated.ioState.in7+generated.ioState.in6+generated.ioState.in5+generated.ioState.in4+generated.ioState.in3+generated.ioState.in2
-          +generated.ioState.in1+generated.ioState.ign+SMCLN+generated.ioState.rsv3+generated.ioState.rsv2+generated.ioState.rsv1+generated.ioState.ou5
+          +generated.ioState.in1+ignState+SMCLN+generated.ioState.rsv3+generated.ioState.rsv2+generated.ioState.rsv1+generated.ioState.ou5
           +generated.ioState.ou4+generated.ioState.ou3+generated.ioState.ou2+generated.ioState.ou1+SMCLN+CADENA_FALTANTE;
         }
       if(!sendDataToServes.sendData(message)) {
@@ -154,6 +158,51 @@ void loop() {
     }
     
   }
+  //// EVENT GENERATED
+  if (ignState == 1 && event_ign == 1) {
+    Serial.println("Engine ON");
+    if(!connection.getFix() ) {
+      event = String("ALT")+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
+          +dateTimeMS.getValueUTC()+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getMNC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
+          +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix()+SMCLN
+          +generated.ioState.in7+generated.ioState.in6+generated.ioState.in5+generated.ioState.in4+generated.ioState.in3+generated.ioState.in2
+          +generated.ioState.in1+ignState+SMCLN+generated.ioState.rsv3+generated.ioState.rsv2+generated.ioState.rsv1+generated.ioState.ou5
+          +generated.ioState.ou4+generated.ioState.ou3+generated.ioState.ou2+generated.ioState.ou1+SMCLN+33+";;";
+    }else{
+      event = String("ALT")+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
+          +gpsData.date+SMCLN+gpsData.utc_time+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getMNC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
+          +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix()+SMCLN
+          +generated.ioState.in7+generated.ioState.in6+generated.ioState.in5+generated.ioState.in4+generated.ioState.in3+generated.ioState.in2
+          +generated.ioState.in1+ignState+SMCLN+generated.ioState.rsv3+generated.ioState.rsv2+generated.ioState.rsv1+generated.ioState.ou5
+          +generated.ioState.ou4+generated.ioState.ou3+generated.ioState.ou2+generated.ioState.ou1+SMCLN+33+";;";
+    }
+    
+
+    generated.turnOn();
+    //Serial.println("Event => "+ event);
+    sendDataToServes.sendData(event);
+  } else if(ignState == 0 && event_ign == 0) {
+    Serial.println("Engine Off");
+    if(!connection.getFix() ) {
+      event = String("ALT")+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
+          +dateTimeMS.getValueUTC()+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getMNC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
+          +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix()+SMCLN
+          +generated.ioState.in7+generated.ioState.in6+generated.ioState.in5+generated.ioState.in4+generated.ioState.in3+generated.ioState.in2
+          +generated.ioState.in1+ignState+SMCLN+generated.ioState.rsv3+generated.ioState.rsv2+generated.ioState.rsv1+generated.ioState.ou5
+          +generated.ioState.ou4+generated.ioState.ou3+generated.ioState.ou2+generated.ioState.ou1+SMCLN+34+";;";
+    }else {
+      event = String("ALT")+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
+          +gpsData.date+SMCLN+gpsData.utc_time+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getMNC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
+          +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+connection.getFix()+SMCLN
+          +generated.ioState.in7+generated.ioState.in6+generated.ioState.in5+generated.ioState.in4+generated.ioState.in3+generated.ioState.in2
+          +generated.ioState.in1+ignState+SMCLN+generated.ioState.rsv3+generated.ioState.rsv2+generated.ioState.rsv1+generated.ioState.ou5
+          +generated.ioState.ou4+generated.ioState.ou3+generated.ioState.ou2+generated.ioState.ou1+SMCLN+34+";;";
+    }
+    generated.turnOff();
+    //Serial.println("Event => "+ event);
+    sendDataToServes.sendData(event);
+
+  }
 }
 
 void handleSerialInput() {
@@ -163,6 +212,18 @@ void handleSerialInput() {
     Serial.print("Respuesta limpia: ");
     Serial.println(response);
   }
+}
+void ignition_event() {
+  int StateIgnition = generated.readInput();
+  if (StateIgnition == LOW && LaststateIgnition == HIGH) {
+    Serial.println("*** ¡ignition ON! **** ");
+    event_ign = 1;
+  
+  }else if(StateIgnition == HIGH && LaststateIgnition == LOW) {
+    Serial.println("**** ¡ignition OFF! ***** ");
+    event_ign = 0;
+  }
+  LaststateIgnition = StateIgnition;
 }
 void simInfo(){
   Serial.println("IMEI => " + modInfo.getIMEI());
