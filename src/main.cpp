@@ -40,8 +40,9 @@ unsigned long previous_time_send = 0;
 unsigned long previous_time_ign_off = 0;
 const unsigned long sendDataTimeout = SEND_DATA_TIMEOUT;
 const unsigned long sendDataIgnOff = SEND_DATA_ING_OFF;
+unsigned long switchOffStartTime = 0;  // Almacena el tiempo cuando el switch se apaga
+bool isCounting = false;
 
-int counter_10s = 0;
 String message;
 bool ignState;
 bool LaststateIgnition = HIGH;
@@ -61,12 +62,13 @@ void setup() {
   Serial.begin(SERIAL_BAUD_RATE);
   powerOut.powerModule();
   powerOut.powerKey();
-
+  mySleep.InitSleepPin(SIM_DTR_PIN);
+  mySleep.DeactivateSleep(SIM_DTR_PIN);
   simModule.begin();
   do{Serial.println("Inicializando Modulo...");}while(!networkManager.initializeModule());
   //stateSIM = networkManager.readSIMInsert();
+    connection.activeModuleSat(1);
   networkManager.basicConfigCDMs();
-  connection.activeModuleSat(1);
   configStorage.begin();
   
   // Iniciar modo Access Point
@@ -77,8 +79,6 @@ void setup() {
   generated.initializePinsFromJson(INPUTS, INPUTS_ACTIVE);
   generated.initOutput(GNSS_LED_PIN);
   generated.initInput(10);
-  mySleep.InitSleepPin(SIM_DTR_PIN);
-  mySleep.DeactivateSleep(SIM_DTR_PIN);
 }
 
 void loop() {
@@ -189,16 +189,31 @@ void ignition_event(Connection::GPSData gpsData) {
   int StateIgnition = generated.readInput();
   if (StateIgnition == LOW && LaststateIgnition == HIGH) {
     Serial.println("*** ¡ignition ON! **** ");
-    event_generated(gpsData, IGN_ON);
     mySleep.DeactivateSleep(SIM_DTR_PIN);
-  
+    isCounting = false;
+    Serial.println("ESP32 fuera de modo sleep.");
+    event_generated(gpsData, IGN_ON);
+    
   }else if(StateIgnition == HIGH && LaststateIgnition == LOW) {
     Serial.println("**** ¡ignition OFF! ***** ");
     event_generated(gpsData, IGN_OFF);
-    mySleep.ActiveSleep(SIM_DTR_PIN);
-
+    switchOffStartTime = millis(); // Comienza a contar desde que el switch se apaga
+    isCounting = true;
+  }
+  //Verifica si ha pasado 1 minuto con el switch en OFF
+  if (isCounting && (millis() - switchOffStartTime >= SLEEP_DELAY)) {
+    Serial.println("El switch estuvo en OFF por 1 minuto. Entrando en modo sleep...");
+    mySleep.ActiveSleep(SIM_DTR_PIN); // Activa el modo sleep del módulo SIM
+    enterDeepSleep();                // Activa el modo Deep Sleep del ESP32
   }
   LaststateIgnition = StateIgnition;
+}
+void enterDeepSleep() {
+  Serial.println("Preparando ESP32 para Deep Sleep...");
+  esp_sleep_enable_ext0_wakeup(GPIO_NUM_10, LOW); // Configura el switch para despertar el ESP32
+  delay(100); // Espera antes de entrar en sleep
+  Serial.println("Entrando en modo Deep Sleep...");
+  esp_deep_sleep_start(); // Entra en modo Deep Sleep
 }
 void simInfo(){
   Serial.println("IMEI => " + modInfo.getIMEI());

@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include "command_type.h"
 #include "config.h"
-#include "utils/Utils.h"
+#include "Utils/Utils.h"
 
 class SIM7600 {
 public:

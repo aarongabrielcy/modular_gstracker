@@ -24,7 +24,7 @@
 #define UPDATE_DATA_TIMEOUT 3000
 // Velocidad de transmisión predeterminada (baud rate) para la comunicación serial con el módulo
 #define SIM7600_BAUD_RATE 115200
-
+#define SLEEP_DELAY 60000      // 1 minuto en milisegundos
 // Configuración de serial del monitor para depuración
 #define SERIAL_BAUD_RATE 115200
 
