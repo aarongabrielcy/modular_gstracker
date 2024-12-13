@@ -36,8 +36,21 @@ bool NetworkManager::readSIMInsert(){
 
 }
 void NetworkManager::basicConfigCDMs(){
-  String cfun_cmd = "AT+CFUN=1";
-  String cfun = simModule.sendCommandWithResponse(cfun_cmd.c_str(), 4000);
+   String commands[] = {
+        "AT+CFUN=1",
+        "AT&D2",
+        "AT+CSCLK=1"
+    };
+    for (const String &cmd : commands) {
+        String response = simModule.sendCommandWithResponse(cmd.c_str(), 4000);
+
+        // Opcional: imprimir o validar la respuesta
+        if (response.isEmpty()) {
+            Serial.println("No response was received for: " + cmd);
+        } else {
+            Serial.println("RSP => " + cmd + ": " + response);
+        }
+    }
 }
 void NetworkManager::configureAPN(const String& apn) {
   //BUSCA QUE ESPACIO TIENES LIBRE 

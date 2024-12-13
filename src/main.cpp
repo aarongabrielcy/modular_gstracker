@@ -13,6 +13,8 @@
 #include "Generated/Generated.h"
 #include "Calculated/Calculated.h"
 #include "PowerOut.h"
+#include "SleepMode/Sleep.h"
+
 SIM7600 simModule(Serial1);  // Instancia de SIM7600 creada en main
 ModuleInfo modInfo(simModule); // Inyección de simModule en ModuleInfo
 DynamicInfo dynInfo(simModule);
@@ -27,6 +29,7 @@ Connection connection(simModule);
 Generated generated;
 //Calculated calculated;
 PowerOut powerOut;
+Sleep mySleep(simModule);
 
 bool stateSIM;
 bool stateGnss;
@@ -74,6 +77,8 @@ void setup() {
   generated.initializePinsFromJson(INPUTS, INPUTS_ACTIVE);
   generated.initOutput(GNSS_LED_PIN);
   generated.initInput(10);
+  mySleep.InitSleepPin(SIM_DTR_PIN);
+  mySleep.DeactivateSleep(SIM_DTR_PIN);
 }
 
 void loop() {
@@ -85,7 +90,10 @@ void loop() {
   fix  = connection.ReadDataGNSS();
   Connection::GPSData gpsData = connection.getLastGPSData();
   generated.readInput() ? ignState = 0 : ignState = 1;
+  bool inSleepMode = mySleep.StateSleep(SIM_DTR_PIN);
+
   ignition_event(gpsData);
+
   current_time = millis();
   webServerHandler.handleClient();
   
@@ -103,6 +111,8 @@ void loop() {
       }
       delay(1000);
     }else{
+      Serial.print("SLEEP MODE => ");
+      Serial.println(inSleepMode ? "HIGH" : "LOW");
       //Serial.println("## SIM insertada!");
       delay(1000);
     }
@@ -180,10 +190,12 @@ void ignition_event(Connection::GPSData gpsData) {
   if (StateIgnition == LOW && LaststateIgnition == HIGH) {
     Serial.println("*** ¡ignition ON! **** ");
     event_generated(gpsData, IGN_ON);
+    mySleep.DeactivateSleep(SIM_DTR_PIN);
   
   }else if(StateIgnition == HIGH && LaststateIgnition == LOW) {
     Serial.println("**** ¡ignition OFF! ***** ");
     event_generated(gpsData, IGN_OFF);
+    mySleep.ActiveSleep(SIM_DTR_PIN);
 
   }
   LaststateIgnition = StateIgnition;
