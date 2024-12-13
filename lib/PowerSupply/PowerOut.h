@@ -8,6 +8,8 @@ class PowerOut {
     public:
     void powerKey();
     void powerModule();
+    void engineCutOn();
+    void engineCutOff();
     private:
 
 };

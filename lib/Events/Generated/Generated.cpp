@@ -17,15 +17,19 @@ bool Generated::readInput() {
 void Generated::initOutput(int pinOut) {
     this->pinOut = pinOut;
     pinMode(pinOut, OUTPUT);
-    digitalWrite(pinOut, LOW);
+    pinMode(13, OUTPUT);
 }
 
 void Generated::turnOn() {
   digitalWrite(pinOut, HIGH);
+  digitalWrite(13, HIGH);
+  Serial.println("Salida Activada!!");
 }
 
 void Generated::turnOff() {
   digitalWrite(pinOut, LOW);
+  digitalWrite(13, LOW);
+  Serial.println("Salida Apagada!!");
 }
 
 /*Generated::InOutState Generated::stateInputs(const String &inputs){

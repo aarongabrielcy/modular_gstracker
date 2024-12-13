@@ -1,9 +1,8 @@
 #include "SendDataToServes.h"
-#include "SimModule/SIM7600.h"
 
 SendDataToServes::SendDataToServes(SIM7600& sim7600) : simModule(sim7600) {}
 
-String SendDataToServes::sendData(String message) {
+bool SendDataToServes::sendData(String message) {
   Serial.print("DATA => ");
   Serial.println(message);
   String respServer = "";
@@ -12,17 +11,35 @@ String SendDataToServes::sendData(String message) {
   String response = simModule.sendCommandWithResponse(cmd.c_str(), 1000);
   
   if (response.indexOf(">") != -1) {
-    String respServer = simModule.sendReadDataToServer(message, 1000); // Envía el mensaje   
-    Serial.println("Respuesta del servidor => " + respServer);
+    String respServer = simModule.sendReadDataToServer("CIPSEND", message, 3000); // Envía el mensaje   
+    Serial.println("Respuesta procesada => " + respServer);
+    String respCMD = readData(respServer, 1000);
+    Serial.println("Comando recibido =>"+respCMD);
   }else {
     Serial.println("Error al enviar mensaje TCP. Intentando reconexión...");
+    return false;
   }
-    return respServer;
+    return true;
 }
 
 String SendDataToServes::readData(String data, int timeout) {
-  Serial.println("Read data");
-  return "OK";
+  int startIndex = data.indexOf("CMD");
+  if (startIndex == -1) {
+    // Si no encuentra "CMD", devuelve una cadena vacía
+    return "";
+  }
+  if(data.substring(startIndex) == "CMD;02049830910;04;01"){
+    Serial.println("Activa salida ===========>");
+    genereted.turnOn();
+    
+  }else if(data.substring(startIndex) == "CMD;02049830910;04;02"){
+  
+    Serial.println("Desactiva salida ===========>");
+    genereted.turnOff();
+  }
+
+  // Extrae desde "CMD" hasta el final de la cadena
+  return data.substring(startIndex);  
 }
 
 bool SendDataToServes::configureTCP(const String& server, int port) {
@@ -51,10 +68,6 @@ bool SendDataToServes::validTcpNet() {
     return true;
   }else if(netopen == "0"){
     SendDataToServes::activeTCP();
-  }else if(netopen.indexOf("+IPD21") ){
-    Serial.println("RSP CMD => " + netopen);
-    SendDataToServes::extractCMDData(netopen);
-    return true;
   }
   return false;
 }

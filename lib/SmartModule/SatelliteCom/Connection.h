@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include "SimModule/SIM7600.h"
+#include "Generated/Generated.h"
 
 class Connection {
     public:
@@ -44,7 +45,7 @@ class Connection {
         String formatDate(const String &date);    // Nueva función para formatear fecha
         String formatTime(const String &utcTime); // Nueva función para formatear hora
         GPSData lastGPSData; // Almacena el último GPSData procesado
-
+        Generated genetated;
         int fix, num_satt;
         float vlat, vlon, vspeed, vcourse;
 };

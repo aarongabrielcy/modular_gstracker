@@ -22,15 +22,19 @@ bool Connection::ReadDataGNSS() {
     String cgpsinfo_cmd = "AT+CGNSSINFO";
     String cgpsinfo = simModule.sendCommandWithResponse(cgpsinfo_cmd.c_str(), 4000);
     if(cgpsinfo == ",,,,,,,,,,,,,,,") {
-        DEBUG == true? fix = 1 : fix = 0;
+        fix = 0;
+        //DEBUG == true? fix = 1 : fix = 0;
+        //genetated.turnOn();
         //Serial.println("GNSS DATA DEBUG => "+ String(GNSS_DEBUG) );
-        GPSData parsedData = ParseData(GNSS_DEBUG);
-        //GPSData parsedData = ParseData(cgpsinfo);
+        //GPSData parsedData = ParseData(GNSS_DEBUG);
+        GPSData parsedData = ParseData(cgpsinfo);
+        Serial.println("GNSS DATA =# "+ cgpsinfo);
+
         //Connection::printGPSData(parsedData);
         return false;
     }else {
         fix = 1;
-        //Serial.println("GNSS DATA => "+ cgpsinfo);
+        Serial.println("GNSS DATA => "+ cgpsinfo);
         GPSData parsedData = ParseData(cgpsinfo);
         return true;
     }
@@ -49,7 +53,6 @@ Connection::GPSData Connection::ParseData(const String &data){
             tokens[index] += data[i];
         }
     }
-
     // Asignar los valores a la estructura
     gpsData.mode = tokens[0].toInt();
     gpsData.gps_svs = tokens[1].toInt();
@@ -67,7 +70,6 @@ Connection::GPSData Connection::ParseData(const String &data){
     gpsData.pdop = tokens[13].toFloat();
     gpsData.hdop = tokens[14].toFloat();
     gpsData.vdop = tokens[15].toFloat();
-
     
     lastGPSData = gpsData;
     return gpsData;

@@ -89,7 +89,7 @@ String getFormatUTC(String dt){
     // Retorna la fecha y hora en formato UTC
     return formattedDate + ";" + formattedTime;
 }
-String getPositionData(String data,int position){
+String getPositionData(String data,int position) {
   int startIndex = 0;
     int endIndex = 0;
     int currentPosition = 0;

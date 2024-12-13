@@ -12,3 +12,15 @@ void PowerOut::powerKey(){
   digitalWrite(POWER_KEY_PIN, HIGH);
   delay(3000);
 }
+
+void PowerOut::engineCutOn() {
+    pinMode(GNSS_LED_PIN, OUTPUT);
+    digitalWrite(GNSS_LED_PIN, HIGH);
+    delay(3000);
+}
+
+void PowerOut::engineCutOff() {
+    pinMode(GNSS_LED_PIN, OUTPUT);
+    digitalWrite(GNSS_LED_PIN, LOW); 
+    delay(3000);
+}
