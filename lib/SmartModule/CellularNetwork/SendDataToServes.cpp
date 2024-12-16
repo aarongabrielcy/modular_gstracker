@@ -11,7 +11,7 @@ bool SendDataToServes::sendData(String message) {
   String response = simModule.sendCommandWithResponse(cmd.c_str(), 500);
   
   if (response.indexOf(">") != -1) {
-    String respServer = simModule.sendReadDataToServer("CIPSEND", message, 3000); // Envía el mensaje   
+    String respServer = simModule.sendReadDataToServer("CIPSEND", message, 1000); // Envía el mensaje   
     Serial.println("Respuesta procesada => " + respServer);
     String respCMD = readData(respServer, 1000);
     Serial.println("Comando recibido =>"+respCMD);
@@ -61,7 +61,7 @@ bool SendDataToServes::configureTCP(const String& server, int port) {
 
 bool SendDataToServes::validTcpNet() {
   String netopen_cmd = "AT+NETOPEN?";
-  String netopen = simModule.sendCommandWithResponse(netopen_cmd.c_str(), 4000);
+  String netopen = simModule.sendCommandWithResponse(netopen_cmd.c_str(), 1000);
   Serial.println("Valid TCP => " + netopen);
   if(netopen == "0OK1" || netopen == "1") {
     Serial.println("Servicio TCP Inicializado!");

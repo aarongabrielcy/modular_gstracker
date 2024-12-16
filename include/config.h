@@ -12,6 +12,8 @@
 #define SIM7600_RX_PIN 5      // Pin RX del módulo SIM7600 (conectar al TX del ESP32) 18 5
 #define SIM7600_TX_PIN 4      // Pin TX del módulo SIM7600 (conectar al RX del ESP32) 17 4
 
+#define SSID_NAME  "GST"
+#define AP_PASSWORD "12345678."
 //CONDICIONES PARA MANDAR TRACKINGS
 #define SEND_DATA_TIMEOUT 500
 #define SEND_DATA_ING_OFF 300000  //15 minutos = 900000 ms
@@ -21,7 +23,7 @@
 // Tiempo de espera predeterminado para comandos AT (en milisegundos)
 #define AT_COMMAND_TIMEOUT 5000
 #define TEST_SIM_TIMEOUT 20000
-#define UPDATE_DATA_TIMEOUT 3000
+#define UPDATE_DATA_TIMEOUT 1000
 // Velocidad de transmisión predeterminada (baud rate) para la comunicación serial con el módulo
 #define SIM7600_BAUD_RATE 115200
 #define SLEEP_DELAY 60000      // 1 minuto en milisegundos

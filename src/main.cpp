@@ -74,9 +74,10 @@ void setup() {
   //connection.activeModuleSat(1);// crear una funcion para auto activar AT+CGPS=1
   networkManager.basicConfigCDMs();
   configStorage.begin();
-  
-  // Iniciar modo Access Point
-  wifiManager.startAP("GST32 AP", "12345678.");//AGREGAR EL IMEI AL NOMBRE PARA IDENTIDICARLOS EJ: GST{imei}
+      // Iniciar modo Access Point
+  String ssid = SSID_NAME+modInfo.getDevID();
+  wifiManager.startAP(ssid.c_str(), AP_PASSWORD);//AGREGAR EL IMEI AL NOMBRE PARA IDENTIDICARLOS EJ: GST{imei}
+
 
   // Iniciar servidor web
   webServerHandler.begin();
@@ -97,7 +98,6 @@ void loop() {
   Connection::GPSData gpsData = connection.getLastGPSData();
   generated.readInput() ? ignState = 0 : ignState = 1;
   //bool inSleepMode = mySleep.StateSleep(SIM_DTR_PIN);
-
   current_time = millis();
   webServerHandler.handleClient();
   current_led = millis();
@@ -106,6 +106,33 @@ void loop() {
       previousMillis = current_led;
       ledState = !ledState;      // Cambiar el estado del LED
       generated.GnssLED(GNSS_LED_PIN, ledState); // Actualizar el estado del LED
+  }
+  if(!stateGnss) {
+    stateGnss = connection.stateGPS();
+    if(stateGnss){
+      //Serial.println("GPS ENCENDIDO!");
+    }
+  }
+
+  ignition_event(gpsData);
+  if(gpsData.course > SEND_DATA_ANGLE && ignState == 1 && gpsData.speed != 0) {
+    Serial.println("### Manda trackeo en curva ###");
+    if(!sendDataToServes.sendData(message)) {
+        stCfgTcp = false;
+    }
+  }
+ 
+  if (current_time - previous_time_update >= UPDATE_DATA_TIMEOUT) {
+    previous_time_update = current_time;  // Actualizar el tiempo anterior
+      dynInfo.getCPSI(); // Validar que no se imprima hasta que tenga los datos "NO" vacíos
+      if(!fix ){
+        datetime = dateTimeMS.getDateTime(); // La hora a veces no tiene sentido año 2080
+      }else{
+        datetime = gpsData.date+SMCLN+gpsData.utc_time;
+      }
+      generated.readPinsFromJson(INPUTS_ACTIVE);
+      //generated.stateIO(); 
+      //calculated.stateEvent(); 
   }
 
   message = String(Headers::STT)+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
@@ -152,32 +179,6 @@ void loop() {
       //delay(1000);
     }
   }
-  if(gpsData.course > SEND_DATA_ANGLE && ignState == 1 && gpsData.speed != 0) {
-    Serial.println("### Manda trackeo en curva ###");
-    if(!sendDataToServes.sendData(message)) {
-        stCfgTcp = false;
-    }
-  }
- 
-  if(!stateGnss) {
-    stateGnss = connection.stateGPS();
-    if(stateGnss){
-      //Serial.println("GPS ENCENDIDO!");
-    }
-  }
-  
-  if (current_time - previous_time_update >= UPDATE_DATA_TIMEOUT) {
-    previous_time_update = current_time;  // Actualizar el tiempo anterior
-      dynInfo.getCPSI(); // Validar que no se imprima hasta que tenga los datos "NO" vacíos
-      if(!fix ){
-        datetime = dateTimeMS.getDateTime(); // La hora a veces no tiene sentido año 2080
-      }else{
-        datetime = gpsData.date+SMCLN+gpsData.utc_time;
-      }
-      generated.readPinsFromJson(INPUTS_ACTIVE);
-      //generated.stateIO(); 
-      //calculated.stateEvent(); 
-  }
   //webServerHandler.serviceToApp();
   // Manejar clientes HTTP
   // Control del parpadeo del LED
@@ -192,7 +193,6 @@ void loop() {
       }
     }
   }
-  ignition_event(gpsData);
 }
 
 void handleSerialInput() {

@@ -7,7 +7,7 @@ Connection::Connection(SIM7600& sim7600) : simModule(sim7600) {}
 
 bool Connection::stateGPS() {
     String cgps_query_cmd = "AT+CGPS?";
-    String cgps_state = simModule.sendCommandWithResponse(cgps_query_cmd.c_str(), 4000);
+    String cgps_state = simModule.sendCommandWithResponse(cgps_query_cmd.c_str(), 1000);
     
     if(cgps_state == "0,1") {
         Serial.println("Activando GPS ...");
@@ -22,7 +22,7 @@ bool Connection::stateGPS() {
 bool Connection::activeModuleSat(int state) { 
     String cgps_cmd = "AT+CGPS="+String(state);
     //consulta antes de activar de nuevo
-    String cgps = simModule.sendCommandWithResponse(cgps_cmd.c_str(), 4000);
+    String cgps = simModule.sendCommandWithResponse(cgps_cmd.c_str(), 1000);
     if(cgps == "OK") {
         return true;
     }else {
@@ -35,7 +35,7 @@ int activeConstellation(){
 }
 bool Connection::ReadDataGNSS() {
     String cgpsinfo_cmd = "AT+CGNSSINFO";
-    String cgpsinfo = simModule.sendCommandWithResponse(cgpsinfo_cmd.c_str(), 4000);
+    String cgpsinfo = simModule.sendCommandWithResponse(cgpsinfo_cmd.c_str(), 1000);
     if(cgpsinfo == ",,,,,,,,,,,,,,,") {
         fix = 0;
         //DEBUG == true? fix = 1 : fix = 0;

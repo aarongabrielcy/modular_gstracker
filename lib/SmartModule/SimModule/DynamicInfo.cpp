@@ -6,7 +6,7 @@ DynamicInfo::DynamicInfo(SIM7600& sim7600) : simModule(sim7600) {}  // Inicializ
 
 void DynamicInfo::getCPSI(){
     String cpsi_cmd = "AT+CPSI?";
-    String cpsi = simModule.sendCommandWithResponse(cpsi_cmd.c_str(), 4000);
+    String cpsi = simModule.sendCommandWithResponse(cpsi_cmd.c_str(), 1000);
     //agregar validación opteniendo el resultado "OFFLINE" o sin tarjeta SIM
     if(cpsi){
         cellID = getValueCPSI(cpsi, CELLID);
