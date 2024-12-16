@@ -1,16 +1,31 @@
 #include "Connection.h"
 #include "SimModule/SIM7600.h"
 
+float lastValidCourse = 0.0;
+
 Connection::Connection(SIM7600& sim7600) : simModule(sim7600) {}
 
+bool Connection::stateGPS() {
+    String cgps_query_cmd = "AT+CGPS?";
+    String cgps_state = simModule.sendCommandWithResponse(cgps_query_cmd.c_str(), 4000);
+    
+    if(cgps_state == "0,1") {
+        Serial.println("Activando GPS ...");
+        return Connection::activeModuleSat(1);
 
-bool Connection::activeModuleSat(int state){
+    }else if(cgps_state == "1,1") {
+        return true;
+    }
+    return false;
+}
+
+bool Connection::activeModuleSat(int state) { 
     String cgps_cmd = "AT+CGPS="+String(state);
     //consulta antes de activar de nuevo
     String cgps = simModule.sendCommandWithResponse(cgps_cmd.c_str(), 4000);
-    if(cgps == "OK"){
+    if(cgps == "OK") {
         return true;
-    }else{
+    }else {
         Serial.println("Resp CGPS state => "+cgps);
         return false;
     }
@@ -66,7 +81,14 @@ Connection::GPSData Connection::ParseData(const String &data){
     gpsData.utc_time = formatTime(tokens[9]);  // Formatear la hora
     gpsData.altitude = tokens[10].toFloat();
     gpsData.speed = tokens[11].toFloat();
-    gpsData.course = tokens[12].toFloat();
+    //gpsData.course = tokens[12].toFloat();
+    if (!tokens[12].isEmpty()) {
+        float parsedCourse = tokens[12].toFloat();
+        gpsData.course = (parsedCourse > 0) ? lastValidCourse = parsedCourse : lastValidCourse;
+    } else {
+        gpsData.course = lastValidCourse; // Usa el último valor válido si el campo está vacío
+    }
+
     gpsData.pdop = tokens[13].toFloat();
     gpsData.hdop = tokens[14].toFloat();
     gpsData.vdop = tokens[15].toFloat();

@@ -38,8 +38,8 @@ bool NetworkManager::readSIMInsert(){
 void NetworkManager::basicConfigCDMs(){
    String commands[] = {
         "AT+CFUN=1",
-        "AT&D2",
-        "AT+CSCLK=1"
+        /*"AT&D2",
+        "AT+CSCLK=1"*/
     };
     for (const String &cmd : commands) {
         String response = simModule.sendCommandWithResponse(cmd.c_str(), 4000);

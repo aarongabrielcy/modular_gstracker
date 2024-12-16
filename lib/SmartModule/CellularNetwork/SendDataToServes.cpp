@@ -8,7 +8,7 @@ bool SendDataToServes::sendData(String message) {
   String respServer = "";
 
   String cmd = "AT+CIPSEND=0," + String(message.length());
-  String response = simModule.sendCommandWithResponse(cmd.c_str(), 1000);
+  String response = simModule.sendCommandWithResponse(cmd.c_str(), 500);
   
   if (response.indexOf(">") != -1) {
     String respServer = simModule.sendReadDataToServer("CIPSEND", message, 3000); // Envía el mensaje   

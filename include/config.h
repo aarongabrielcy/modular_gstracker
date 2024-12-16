@@ -13,7 +13,7 @@
 #define SIM7600_TX_PIN 4      // Pin TX del módulo SIM7600 (conectar al RX del ESP32) 17 4
 
 //CONDICIONES PARA MANDAR TRACKINGS
-#define SEND_DATA_TIMEOUT 5000
+#define SEND_DATA_TIMEOUT 500
 #define SEND_DATA_ING_OFF 300000  //15 minutos = 900000 ms
 #define SEND_DATA_SPEED 20 //KM/H
 #define SEND_DATA_ANGLE 15.10 //Degers

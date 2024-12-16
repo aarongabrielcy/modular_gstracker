@@ -19,7 +19,9 @@ void Generated::initOutput(int pinOut) {
     pinMode(pinOut, OUTPUT);
     pinMode(13, OUTPUT);
 }
-
+void Generated::GnssLED(int pin, bool state){
+  digitalWrite(pin, !digitalRead(pin));
+}
 void Generated::turnOn() {
   digitalWrite(pinOut, HIGH);
   digitalWrite(13, HIGH);
@@ -91,9 +93,9 @@ void Generated::initializePinsFromJson(const char* json, const char* bitmask) {
 
       // Asigna valores al struct basado en la clave
       if (key == "ign") ioState.ign = value;
-      else if (key == "in1") ioState.in1 = value;
-      else if (key == "in2") ioState.in2 = value;
-      else if (key == "in3") ioState.in3 = value;
+      else if (key == "in1") ioState.in1 = !value;
+      else if (key == "in2") ioState.in2 = !value;
+      else if (key == "in3") ioState.in3 = !value;
       /*Serial.print("Lectura del pin ");
       Serial.print(keyValue.key().c_str());
       Serial.print(" (");

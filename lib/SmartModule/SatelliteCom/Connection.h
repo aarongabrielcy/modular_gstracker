@@ -5,9 +5,12 @@
 #include "SimModule/SIM7600.h"
 #include "Generated/Generated.h"
 
+extern float lastValidCourse;
+
 class Connection {
     public:
         Connection(SIM7600& sim7600);
+        bool stateGPS();
         bool activeModuleSat(int state);
         bool ReadDataGNSS();
         int getFix();

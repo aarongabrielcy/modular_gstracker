@@ -36,6 +36,7 @@ class Generated {
         void initOutput(int pinOut); // Método para inicializar con el pin
         void turnOn();
         void turnOff();
+        void GnssLED(int pin, bool state);
         
         InOutState stateInputs( const String &inputs);
         void initIO(char* activeIn, char* activeOut);
