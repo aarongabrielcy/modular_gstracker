@@ -51,8 +51,7 @@ bool ignState;
 bool LaststateIgnition = HIGH;
 bool fix;
 String datetime;
-int accumulated;
-bool speed_ign; 
+float previousCourse = -1.0;
 void handleSerialInput();
 void updateData();
 void simInfo();
@@ -66,25 +65,26 @@ void setup() {
   Serial.begin(SERIAL_BAUD_RATE);
   powerOut.powerModule();
   powerOut.powerKey();
+  configStorage.begin();
   /*mySleep.InitSleepPin(SIM_DTR_PIN);
   mySleep.DeactivateSleep(SIM_DTR_PIN);*/
   simModule.begin();
   do{Serial.println("Inicializando Modulo...");}while(!networkManager.initializeModule());
   //stateSIM = networkManager.readSIMInsert();
   //connection.activeModuleSat(1);// crear una funcion para auto activar AT+CGPS=1
-  networkManager.basicConfigCDMs();
-  configStorage.begin();
-      // Iniciar modo Access Point
   String ssid = SSID_NAME+modInfo.getDevID();
   wifiManager.startAP(ssid.c_str(), AP_PASSWORD);//AGREGAR EL IMEI AL NOMBRE PARA IDENTIDICARLOS EJ: GST{imei}
-
-
   // Iniciar servidor web
   webServerHandler.begin();
+  networkManager.basicConfigCDMs();
+  do{Serial.println("Conectando a la RED Celular...");}while(!networkManager.configurePDP(TELCEL, 1) );
+  do{Serial.println("Activando GNSS...");}while(!connection.stateGPS() );
+  do{Serial.println("Activando servicio TCP...");}while(!sendDataToServes.validTcpNet() );
+  do{Serial.println("Leyendo IP y Puerto en memoria ... ");}while(!webServerHandler.handleRoot());
+  do{Serial.println("Conectando al servidor TCP...");}while (!sendDataToServes.configureTCP(webServerHandler.getServerIP(), webServerHandler.getServerPort() ));
   generated.initializePinsFromJson(INPUTS, INPUTS_ACTIVE);
   generated.initOutput(GNSS_LED_PIN);
   generated.initInput(10);
-  speed_ign = false;
 }
 
 void loop() {
@@ -92,35 +92,50 @@ void loop() {
   stateGnss = false;
   static bool stateCfgPdp = false;
   static bool stCfgTcp = false;
+  Connection::GPSData gpsData = connection.getLastGPSData();
   handleSerialInput();
   fix  = connection.ReadDataGNSS();
   fix ? blinkInterval = 200 : blinkInterval = 1000; 
-  Connection::GPSData gpsData = connection.getLastGPSData();
   generated.readInput() ? ignState = 0 : ignState = 1;
+  ignition_event(gpsData);
   //bool inSleepMode = mySleep.StateSleep(SIM_DTR_PIN);
   current_time = millis();
   webServerHandler.handleClient();
   current_led = millis();
-  
-  if (current_led - previousMillis >= blinkInterval) {
+  message = String(Headers::STT)+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
+        +datetime+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getMNC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
+        +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+fix+SMCLN
+        +generated.ioState.in7+generated.ioState.in6+generated.ioState.in5+generated.ioState.in4+generated.ioState.in3+generated.ioState.in2
+        +generated.ioState.in1+ignState+SMCLN+generated.ioState.rsv3+generated.ioState.rsv2+generated.ioState.rsv1+generated.ioState.ou5
+          +generated.ioState.ou4+generated.ioState.ou3+generated.ioState.ou2+generated.ioState.ou1+SMCLN+CADENA_FALTANTE;
+
+  if(current_led - previousMillis >= blinkInterval) {
       previousMillis = current_led;
       ledState = !ledState;      // Cambiar el estado del LED
       generated.GnssLED(GNSS_LED_PIN, ledState); // Actualizar el estado del LED
   }
-  if(!stateGnss) {
+  /*if(!stateGnss) {
     stateGnss = connection.stateGPS();
     if(stateGnss){
       //Serial.println("GPS ENCENDIDO!");
     }
+  }*/
+ if (previousCourse != -1.0) {  // Verificar que no sea la primera lectura
+    float difference = abs(gpsData.course - previousCourse);  // Calcular la diferencia absoluta
+    if (difference >= SEND_DATA_ANGLE) {  // Si la diferencia es mayor o igual a 15
+      Serial.print("Cambio significativo detectado en course: ");
+      Serial.println(difference);
+      if(!sendDataToServes.sendData(message)) {
+        stCfgTcp = false;
+      }
+    }
   }
-
-  ignition_event(gpsData);
-  if(gpsData.course > SEND_DATA_ANGLE && ignState == 1 && gpsData.speed != 0) {
+  /*if(gpsData.course >= SEND_DATA_ANGLE && ignState == 1) {
     Serial.println("### Manda trackeo en curva ###");
     if(!sendDataToServes.sendData(message)) {
         stCfgTcp = false;
     }
-  }
+  }*/
  
   if (current_time - previous_time_update >= UPDATE_DATA_TIMEOUT) {
     previous_time_update = current_time;  // Actualizar el tiempo anterior
@@ -134,32 +149,24 @@ void loop() {
       //generated.stateIO(); 
       //calculated.stateEvent(); 
   }
-
-  message = String(Headers::STT)+SMCLN+modInfo.getDevID()+SMCLN+REPORT_MAP+SMCLN+MODEL_DEVICE+SMCLN+SW_VER+SMCLN+MSG_TYPE+SMCLN
-          +datetime+SMCLN+dynInfo.getCellID()+SMCLN+dynInfo.getMCC()+SMCLN+dynInfo.getMNC()+SMCLN+dynInfo.getLAC()+SMCLN+dynInfo.getRxLev()+SMCLN
-          +gpsData.latitude+SMCLN+gpsData.longitude+SMCLN+gpsData.speed+SMCLN+gpsData.course+SMCLN+gpsData.gps_svs+SMCLN+fix+SMCLN
-          +generated.ioState.in7+generated.ioState.in6+generated.ioState.in5+generated.ioState.in4+generated.ioState.in3+generated.ioState.in2
-          +generated.ioState.in1+ignState+SMCLN+generated.ioState.rsv3+generated.ioState.rsv2+generated.ioState.rsv1+generated.ioState.ou5
-          +generated.ioState.ou4+generated.ioState.ou3+generated.ioState.ou2+generated.ioState.ou1+SMCLN+CADENA_FALTANTE;
-
-    if(current_time - previous_time_send >= sendDataTimeout && ignState == 1) {
+  if(current_time - previous_time_send >= sendDataTimeout && ignState == 1) {
       
-      previous_time_send = current_time;  // Actualizar el tiempo anterior
+    previous_time_send = current_time;  // Actualizar el tiempo anterior
         
-      if(!sendDataToServes.sendData(message)) {
-        stCfgTcp = false;
-      }
+    if(!sendDataToServes.sendData(message)) {
+      stCfgTcp = false;
     }
-    if(current_time - previous_time_ign_off >= sendDataIgnOff && ignState == 0) {
+  }
+  if(current_time - previous_time_ign_off >= sendDataIgnOff && ignState == 0) {
       //gpsInfo( gpsData);
-      previous_time_ign_off = current_time;  // Actualizar el tiempo anterior
-       Serial.println("tiempo transcurrido con motor apagado => "); 
-      if(!sendDataToServes.sendData(message)) {
-        stCfgTcp = false;
-      }
+    previous_time_ign_off = current_time;  // Actualizar el tiempo anterior
+    Serial.println("tiempo transcurrido con motor apagado => "); 
+    if(!sendDataToServes.sendData(message)) {
+      stCfgTcp = false;
     }
+  }
 
-  if(!stateSIM) {
+  /*if(!stateSIM) {
     //Serial.println("Validando estado de la SIMCARD");
     stateSIM = networkManager.readSIMInsert();
     if(!stateSIM){
@@ -178,11 +185,11 @@ void loop() {
       //Serial.println("## SIM insertada!");
       //delay(1000);
     }
-  }
+  }*/
   //webServerHandler.serviceToApp();
   // Manejar clientes HTTP
   // Control del parpadeo del LED
-  if(!stateCfgPdp && stateSIM) {
+  /*if(!stateCfgPdp && stateSIM) {
     Serial.println("configurando PDP");
     stateCfgPdp = networkManager.configurePDP(TELCEL, 1);
   }
@@ -192,7 +199,7 @@ void loop() {
        stCfgTcp = sendDataToServes.configureTCP(webServerHandler.getServerIP(), webServerHandler.getServerPort() );
       }
     }
-  }
+  }*/
 }
 
 void handleSerialInput() {

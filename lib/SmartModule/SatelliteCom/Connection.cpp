@@ -35,7 +35,7 @@ int activeConstellation(){
 }
 bool Connection::ReadDataGNSS() {
     String cgpsinfo_cmd = "AT+CGNSSINFO";
-    String cgpsinfo = simModule.sendCommandWithResponse(cgpsinfo_cmd.c_str(), 1000);
+    String cgpsinfo = simModule.sendCommandWithResponse(cgpsinfo_cmd.c_str(), 100);
     if(cgpsinfo == ",,,,,,,,,,,,,,,") {
         fix = 0;
         //DEBUG == true? fix = 1 : fix = 0;
@@ -54,7 +54,7 @@ bool Connection::ReadDataGNSS() {
         return true;
     }
 }
-Connection::GPSData Connection::ParseData(const String &data){
+Connection::GPSData Connection::ParseData(const String &data) {
     GPSData gpsData;
     int index = 0;
     String tokens[16]; // Array para almacenar las partes de la cadena
