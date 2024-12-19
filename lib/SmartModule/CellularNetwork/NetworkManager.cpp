@@ -170,14 +170,16 @@ bool NetworkManager::configurePDP( int cid, int state) {
   String cgAct_cmd = "AT+CGACT=" + String(state) + "," + validateApn;
   String cgAct = simModule.sendCommandWithResponse(cgAct_cmd.c_str(), 4000);
   
-  if(company == ATT && cgAct == "OK"){
+  if(company == ATT && cgAct == "OK") {
     apn_1 = DEFAULT_APN_ATT;
     public_ip_1 = NetworkManager::getIpActive(validateApn);
     return true;
 
-  }else if(company == TELCEL && cgAct == "OK"){
+  }else if(company == TELCEL && cgAct == "OK") {
     apn_1 = DEFAULT_APN_TELCEL;
     public_ip_1 = NetworkManager::getIpActive(validateApn);
+    return true;
+  }else if(cgAct == "+CME ERROR: unknown") {
     return true;
   }else{
     Serial.println("Configure el APN según su region => "+cgAct);
@@ -189,7 +191,7 @@ String  NetworkManager::getIpActive(int c_id){
   
   cgpaddr_cmd = "AT+CGPADDR="+String(c_id);
   Serial.println("Comando para obtener ip public => "+cgpaddr_cmd);
-  String cgpaddr =  simModule.sendCommandWithResponse(cgpaddr_cmd.c_str(), 5000);;
+  String cgpaddr =  simModule.sendCommandWithResponse(cgpaddr_cmd.c_str(), 5000);
    
   return cgpaddr;
 }

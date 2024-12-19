@@ -18,7 +18,7 @@
 #define SEND_DATA_TIMEOUT 500
 #define SEND_DATA_ING_OFF 300000  //15 minutos = 900000 ms
 #define SEND_DATA_SPEED 20 //KM/H
-#define SEND_DATA_ANGLE 15.10 //Degers
+#define SEND_DATA_ANGLE 15.0 //Degers
 
 // Tiempo de espera predeterminado para comandos AT (en milisegundos)
 #define AT_COMMAND_TIMEOUT 5000

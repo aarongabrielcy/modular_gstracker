@@ -10,7 +10,7 @@ class SIM7600 {
 public:
   SIM7600(HardwareSerial& serial);
   void begin();
-  String sendCommandWithResponse(const char* command, int timeout = AT_COMMAND_TIMEOUT);
+  String sendCommandWithResponse(const char* command, int timeout);
   String processResponse(const String& command, const String& fcommand, const String& response);
   String sendReadDataToServer(const String& fcommand, const String& message, int timeout);
 

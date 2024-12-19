@@ -37,7 +37,7 @@ class Generated {
         void turnOn();
         void turnOff();
         void GnssLED(int pin, bool state);
-        
+        void GnssLedBlink(int pin, bool state);
         InOutState stateInputs( const String &inputs);
         void initIO(char* activeIn, char* activeOut);
         void initializePinsFromJson(const char* json, const char* bitmask);

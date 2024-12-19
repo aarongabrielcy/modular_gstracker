@@ -20,6 +20,10 @@ void Generated::initOutput(int pinOut) {
     pinMode(13, OUTPUT);
 }
 void Generated::GnssLED(int pin, bool state){
+  digitalWrite(pin, state);
+}
+void Generated::GnssLedBlink(int pin, bool state){
+  digitalWrite(pin, digitalRead(pin));
   digitalWrite(pin, !digitalRead(pin));
 }
 void Generated::turnOn() {
