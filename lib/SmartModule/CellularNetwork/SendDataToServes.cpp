@@ -63,7 +63,7 @@ bool SendDataToServes::validTcpNet() {
   String netopen_cmd = "AT+NETOPEN?";
   String netopen = simModule.sendCommandWithResponse(netopen_cmd.c_str(), 1000);
   Serial.println("Valid TCP => " + netopen);
-  if(netopen == "0OK1" || netopen == "1") {
+  if(netopen == "0OK" || netopen == "1OK") {
     Serial.println("Servicio TCP Inicializado!");
     return true;
   }else if(netopen == "0"){

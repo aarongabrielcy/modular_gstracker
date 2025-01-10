@@ -12,6 +12,7 @@ class Connection {
         Connection(SIM7600& sim7600);
         bool stateGPS();
         bool activeModuleSat(int state);
+        bool activeTimeReport(int timeout);
         bool ReadDataGNSS();
         int getFix();
         float getLat();
@@ -26,8 +27,8 @@ class Connection {
             int gps_svs;
             int glonass_svs;
             int beidou_svs;
-            String latitude;
-            String longitude;
+            String latitude = "0.0";
+            String longitude = "0.0";
             char ns_indicator;
             char ew_indicator;
             String date;

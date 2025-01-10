@@ -76,11 +76,14 @@ void setup() {
   generated.initializePinsFromJson(INPUTS, INPUTS_ACTIVE);
   generated.initOutput(GNSS_LED_PIN);
   generated.initInput(10);
+  do{Serial.println("Activando reporte GNSS...");}while(!connection.activeTimeReport(1) );
+
 }
 
 void loop() {
   static bool stCfgTcp = false;
-  fix  = connection.ReadDataGNSS();
+  //fix  = connection.ReadDataGNSS();
+  simModule.sendReadDataToGNSS(1000);
   Connection::GPSData gpsData = connection.getLastGPSData();
   handleSerialInput();
   dynInfo.getCPSI(); // Validar que no se imprima hasta que tenga los datos "NO" vacíos

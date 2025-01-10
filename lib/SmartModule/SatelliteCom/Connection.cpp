@@ -30,8 +30,13 @@ bool Connection::activeModuleSat(int state) {
         return false;
     }
 }
-int activeConstellation(){ 
-    return 0;
+bool Connection::activeTimeReport(int timeout) {
+    String gnssinfo = "AT+CGNSSINFO="+String(timeout);
+    String cgnss = simModule.sendCommandWithResponse(gnssinfo.c_str(), 1000);
+    if(cgnss == "OK"){
+        return true;
+    }
+    return false;
 }
 bool Connection::ReadDataGNSS() {
     String cgpsinfo_cmd = "AT+CGNSSINFO";
@@ -80,7 +85,10 @@ Connection::GPSData Connection::ParseData(const String &data) {
     gpsData.date = formatDate(tokens[8]);      // Formatear la fecha
     gpsData.utc_time = formatTime(tokens[9]);  // Formatear la hora
     gpsData.altitude = tokens[10].toFloat();
-    gpsData.speed = tokens[11].toFloat();
+    //gpsData.speed = tokens[11].toFloat();
+    if (!tokens[11].isEmpty()) {
+        gpsData.speed = tokens[11].toFloat() * 1.85;
+    }
     //gpsData.course = tokens[12].toFloat();
     if (!tokens[12].isEmpty()) {
         float parsedCourse = tokens[12].toFloat();

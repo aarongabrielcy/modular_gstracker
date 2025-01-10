@@ -144,3 +144,19 @@ String SIM7600::sendReadDataToServer(const String& fcommand, const String& messa
   
   return response; //devolver un JSON con el formato [{server: ""}, {port:0},{length:0},{response: ""}]
 }
+String SIM7600::sendReadDataToGNSS(int timeout) {
+  String response = "";
+  long startTime = millis();
+  while ((millis() - startTime) < timeout) {
+    if (simSerial.available()) {
+      char c = simSerial.read();
+      response += c;
+    }
+  }
+  /*response.replace("+"+fcommand+": ", "");*/
+  response = trimResponse(response);
+    Serial.print("GNSS DATA ?=>");
+  Serial.println(response);
+
+  return response;
+}
